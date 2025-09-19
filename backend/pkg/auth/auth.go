@@ -100,15 +100,15 @@ func (s *AuthService) Register(c *gin.Context) {
 
 	ctx := c.Request.Context()
 
-	// Проверка существования пользователя
-	exitingUser, err := s.userRepo.GetUserByEmail(ctx, req.Email)
+	// Проверка существования пользователя по email
+	exitingUserByEmail, err := s.userRepo.GetUserByEmail(ctx, req.Email)
 	if err != nil {
 		logger.Error("Error checking email existence", zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Registration failed"})
 		return
 	}
 
-	if exitingUser != nil {
+	if exitingUserByEmail != nil {
 		logger.Info("Registration attempt with existing email", zap.String("email", req.Email))
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Пользователь с таким email уже зарегистрирован"})
 		return
@@ -137,7 +137,7 @@ func (s *AuthService) Register(c *gin.Context) {
 		Password:                string(hashedPassword),
 		Role:                    "user",
 		EmailVerified:           false,
-		EmailVerificationToken:  verificationToken,
+		EmailVerificationToken:  &verificationToken,
 		EmailVerificationSentAt: time.Now(),
 	}
 
@@ -146,15 +146,10 @@ func (s *AuthService) Register(c *gin.Context) {
 			logger.Error("Не удалось отправить письмо подтверждения",
 				zap.Error(err),
 				zap.String("email", newUser.Email))
-			// Не прерываем регистрацию, но логируем ошибку
 		}
 	} else {
-		// development - автоматическая верификация
 		newUser.EmailVerified = true
-		newUser.EmailVerificationToken = ""
-		if err := s.userRepo.UpdateUser(ctx, newUser); err != nil {
-			logger.Error("Ошибка авто-верификации", zap.Error(err))
-		}
+		newUser.EmailVerificationToken = nil
 	}
 
 	if err := s.userRepo.CreateUser(ctx, newUser); err != nil {
@@ -199,7 +194,7 @@ func (s *AuthService) Login(c *gin.Context) {
 			}
 
 			// Обновляем токен и время отправки
-			user.EmailVerificationToken = newToken
+			user.EmailVerificationToken = &newToken
 			user.EmailVerificationSentAt = time.Now()
 
 			if err := s.userRepo.UpdateUser(ctx, user); err != nil {
@@ -451,7 +446,7 @@ func (s *AuthService) ResendVerification(c *gin.Context) {
 	}
 
 	// Обновляем токен и время отправки
-	user.EmailVerificationToken = newToken
+	user.EmailVerificationToken = &newToken
 	user.EmailVerificationSentAt = time.Now()
 
 	if err := s.userRepo.UpdateUser(ctx, user); err != nil {

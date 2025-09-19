@@ -13,7 +13,7 @@ type User struct {
 	Email                   string         `gorm:"type:varchar(255);uniqueIndex;not null" json:"email"`
 	Password                string         `gorm:"type:varchar(255);not null" json:"-"`
 	EmailVerified           bool           `gorm:"default:false" json:"email_verified"`
-	EmailVerificationToken  string         `gorm:"type:varchar(255);uniqueIndex" json:"-"`
+	EmailVerificationToken  *string        `gorm:"type:varchar(255)" json:"-"`
 	EmailVerificationSentAt time.Time      `json:"-"`
 	Role                    string         `gorm:"type:varchar(50);default:'user'" json:"role"`
 	LastLogin               *time.Time     `json:"last_login,omitempty"`
@@ -24,43 +24,43 @@ type User struct {
 	DeletedAt               gorm.DeletedAt `gorm:"index" json:"-"`
 }
 type OAuthClient struct {
-	ID           uuid.UUID `json:"id" db:"id"`
-	UserID       uuid.UUID `json:"user_id" db:"user_id"`
-	Name         string    `json:"name" db:"name"`
-	Secret       string    `json:"secret" db:"secret"`
-	RedirectURIs []string  `json:"redirect_uris" db:"redirect_uris"`
-	Grants       []string  `json:"grants" db:"grants"`
-	Scope        string    `json:"scope" db:"scope"`
-	CreatedAt    time.Time `json:"created_at" db:"created_at"`
-	UpdatedAt    time.Time `json:"updated_at" db:"updated_at"`
+	ID           uuid.UUID `gorm:"type:uuid;primaryKey;default:uuid_generate_v4()" json:"id"`
+	UserID       uuid.UUID `gorm:"type:uuid;not null" json:"user_id"`
+	Name         string    `gorm:"type:varchar(255);not null" json:"name"`
+	Secret       string    `gorm:"type:varchar(255);not null" json:"secret"`
+	RedirectURIs string    `gorm:"type:text" json:"redirect_uris"` // JSON строка вместо массива
+	Grants       string    `gorm:"type:text" json:"grants"`        // JSON строка вместо массива
+	Scope        string    `gorm:"type:varchar(500)" json:"scope"`
+	CreatedAt    time.Time `gorm:"autoCreateTime" json:"created_at"`
+	UpdatedAt    time.Time `gorm:"autoUpdateTime" json:"updated_at"`
 }
 
 type AuthorizationCode struct {
-	Code        string    `json:"code" db:"code"`
-	ClientID    uuid.UUID `json:"client_id" db:"client_id"`
-	UserID      uuid.UUID `json:"user_id" db:"user_id"`
-	RedirectURI string    `json:"redirect_uri" db:"redirect_uri"`
-	Scope       string    `json:"scope" db:"scope"`
-	ExpiresAt   time.Time `json:"expires_at" db:"expires_at"`
-	Used        bool      `json:"used" db:"used"`
-	CreatedAt   time.Time `json:"created_at" db:"created_at"`
+	Code        string    `gorm:"type:varchar(255);primaryKey" json:"code"`
+	ClientID    uuid.UUID `gorm:"type:uuid;not null" json:"client_id"`
+	UserID      uuid.UUID `gorm:"type:uuid;not null" json:"user_id"`
+	RedirectURI string    `gorm:"type:text" json:"redirect_uri"`
+	Scope       string    `gorm:"type:varchar(500)" json:"scope"`
+	ExpiresAt   time.Time `gorm:"not null" json:"expires_at"`
+	Used        bool      `gorm:"default:false" json:"used"`
+	CreatedAt   time.Time `gorm:"autoCreateTime" json:"created_at"`
 }
 
 type AccessToken struct {
-	Token     string    `gorm:"primaryKey" json:"token"`
-	ClientID  uuid.UUID `json:"client_id"`
-	UserID    uuid.UUID `json:"user_id"`
-	Scope     string    `json:"scope"`
-	ExpiresAt time.Time `json:"expires_at"`
+	Token     string    `gorm:"type:varchar(255);primaryKey" json:"token"`
+	ClientID  uuid.UUID `gorm:"type:uuid;not null" json:"client_id"`
+	UserID    uuid.UUID `gorm:"type:uuid;not null" json:"user_id"`
+	Scope     string    `gorm:"type:varchar(500)" json:"scope"`
+	ExpiresAt time.Time `gorm:"not null" json:"expires_at"`
 	CreatedAt time.Time `gorm:"autoCreateTime" json:"created_at"`
 }
 
 type RefreshToken struct {
-	Token       string    `gorm:"primaryKey" json:"token"`
-	AccessToken string    `json:"access_token"`
-	ClientID    uuid.UUID `json:"client_id"`
-	UserID      uuid.UUID `json:"user_id"`
-	Scope       string    `json:"scope"`
-	ExpiresAt   time.Time `json:"expires_at"`
+	Token       string    `gorm:"type:varchar(255);primaryKey" json:"token"`
+	AccessToken string    `gorm:"type:varchar(255)" json:"access_token"`
+	ClientID    uuid.UUID `gorm:"type:uuid;not null" json:"client_id"`
+	UserID      uuid.UUID `gorm:"type:uuid;not null" json:"user_id"`
+	Scope       string    `gorm:"type:varchar(500)" json:"scope"`
+	ExpiresAt   time.Time `gorm:"not null" json:"expires_at"`
 	CreatedAt   time.Time `gorm:"autoCreateTime" json:"created_at"`
 }

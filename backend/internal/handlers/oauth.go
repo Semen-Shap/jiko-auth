@@ -2,6 +2,7 @@
 package handlers
 
 import (
+	"encoding/json"
 	"jiko-auth/internal/models"
 	"jiko-auth/internal/repository"
 	"jiko-auth/internal/utils"
@@ -43,8 +44,14 @@ func (h *OAuthHandler) Authorize(c *gin.Context) {
 	}
 
 	// Валидируем redirect_uri
+	var redirectURIs []string
+	if err := json.Unmarshal([]byte(client.RedirectURIs), &redirectURIs); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid client configuration"})
+		return
+	}
+
 	isValidRedirect := false
-	for _, uri := range client.RedirectURIs {
+	for _, uri := range redirectURIs {
 		if uri == redirectURI {
 			isValidRedirect = true
 			break
@@ -171,13 +178,28 @@ func (h *OAuthHandler) CreateClient(c *gin.Context) {
 		return
 	}
 
+	// Сериализуем RedirectURIs в JSON
+	redirectURIsJSON, err := json.Marshal(req.RedirectURIs)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to serialize redirect URIs"})
+		return
+	}
+
+	// Сериализуем Grants в JSON
+	grants := []string{"authorization_code", "refresh_token"}
+	grantsJSON, err := json.Marshal(grants)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to serialize grants"})
+		return
+	}
+
 	// Исправлено: создаем объект models.OAuthClient вместо repository.OAuthClientRepository
 	client := &models.OAuthClient{
 		UserID:       uid,
 		Name:         req.Name,
 		Secret:       secret,
-		RedirectURIs: req.RedirectURIs,
-		Grants:       []string{"authorization_code", "refresh_token"},
+		RedirectURIs: string(redirectURIsJSON),
+		Grants:       string(grantsJSON),
 		CreatedAt:    time.Now(),
 		UpdatedAt:    time.Now(),
 	}

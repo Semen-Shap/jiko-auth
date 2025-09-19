@@ -30,7 +30,7 @@ func Init(cfg *config.Config) (*gorm.DB, error) {
 	dbHost := getDBHost(cfg)
 
 	dsn := fmt.Sprintf(
-		"host=%s port=%s user=%s password=%s dbname=%s TimeZone=UTC",
+		"host=%s port=%s user=%s password=%s dbname=%s sslmode=disable TimeZone=UTC",
 		dbHost, // Используем определенный хост
 		cfg.DBPort,
 		cfg.DBUser,
@@ -38,7 +38,7 @@ func Init(cfg *config.Config) (*gorm.DB, error) {
 		cfg.DBName,
 	)
 
-	logger.Info(fmt.Sprintf("Connecting to database at host: %s", dbHost))
+	logger.Info(fmt.Sprintf("Connecting to database at host: %s, user: %s, dbname: %s", dbHost, cfg.DBUser, cfg.DBName))
 
 	gormConfig := &gorm.Config{
 		Logger: gormLogger.New(
