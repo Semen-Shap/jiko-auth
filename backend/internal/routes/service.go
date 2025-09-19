@@ -20,6 +20,59 @@ func SetupRouter(
 	// Добавляем CORS middleware
 	router.Use(middleware.CORSMiddleware())
 
+	// Загружаем HTML шаблоны
+	router.LoadHTMLGlob("/static/html/*")
+
+	// Статические файлы
+	router.Static("/static", "/static") // HTML страницы
+	router.GET("/", func(c *gin.Context) {
+		c.HTML(200, "base.html", gin.H{
+			"Title": "Вход и регистрация",
+		})
+	})
+
+	router.GET("/login", func(c *gin.Context) {
+		c.HTML(200, "base.html", gin.H{
+			"Title": "Вход",
+		})
+	})
+
+	router.GET("/register", func(c *gin.Context) {
+		c.HTML(200, "base.html", gin.H{
+			"Title": "Регистрация",
+		})
+	})
+
+	router.GET("/verify-email", func(c *gin.Context) {
+		token := c.Query("token")
+		success := c.Query("success")
+
+		if token != "" {
+			// Перенаправляем на API верификации
+			authHandler.VerifyEmail(c)
+			return
+		}
+
+		var title, message string
+		var isSuccess bool
+
+		if success == "true" {
+			isSuccess = true
+			title = "Email успешно подтвержден!"
+			message = "Ваш email был успешно подтвержден. Теперь вы можете войти в свой аккаунт."
+		} else {
+			isSuccess = false
+			title = "Ошибка подтверждения"
+			message = "Произошла ошибка при подтверждении email. Попробуйте еще раз или свяжитесь с поддержкой."
+		}
+
+		c.HTML(200, "verification-result.html", gin.H{
+			"Title":   title,
+			"Success": isSuccess,
+			"Message": message,
+		})
+	})
+
 	// API routes
 	api := router.Group("/api/v1")
 	{

@@ -5,7 +5,6 @@ import (
 	"encoding/hex"
 	"fmt"
 	"net/http"
-	"os"
 	"regexp"
 	"strings"
 	"time"
@@ -318,13 +317,8 @@ func (s *AuthService) VerifyEmail(c *gin.Context) {
 		return
 	}
 
-	// Перенаправляем на страницу успеха на фронтенде
-	frontendURL := os.Getenv("FRONTEND_URL")
-	if frontendURL == "" {
-		frontendURL = "http://localhost:3000"
-	}
-
-	c.Redirect(http.StatusFound, fmt.Sprintf("%s/verify-email?success=true", frontendURL))
+	// Перенаправляем на страницу успеха
+	c.Redirect(http.StatusFound, "/verify-email?success=true")
 }
 
 func isAPIRequest(c *gin.Context) bool {
