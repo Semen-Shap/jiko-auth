@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"jiko-auth/backend/internal/models"
+	"jiko-auth/internal/models"
 	"time"
 
 	"github.com/google/uuid"

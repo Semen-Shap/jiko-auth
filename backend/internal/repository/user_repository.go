@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"jiko-auth/backend/internal/models"
+	"jiko-auth/internal/models"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"

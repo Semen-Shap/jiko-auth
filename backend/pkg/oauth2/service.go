@@ -3,8 +3,8 @@ package oauth2
 
 import (
 	"errors"
-	"jiko-auth/backend/internal/models"
-	"jiko-auth/backend/internal/utils"
+	"jiko-auth/internal/models"
+	"jiko-auth/internal/utils"
 	"time"
 )
 
