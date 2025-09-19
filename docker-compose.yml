@@ -1,0 +1,39 @@
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: assetdb
+      POSTGRES_USER: assetuser
+      POSTGRES_PASSWORD: strongpass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=assetuser
+      - DB_PASSWORD=strongpass
+      - DB_NAME=assetdb
+      - JWT_SECRET=your_super_secret_jwt_key_32_chars_min
+      - APP_ENV=development
+      - FRONTEND_URL=http://localhost:3000
+      - APP_URL=http://localhost:8080
+      - DOCKER_COMPOSE=true
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
