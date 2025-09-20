@@ -26,6 +26,7 @@ import {
 } from '@/components/ui/pagination';
 import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { useSidebar } from "@/components/ui/sidebar";
 
 export default function Users() {
 	const { token } = useAdminAuth();
@@ -127,6 +128,11 @@ export default function Users() {
 
 	const totalPages = Math.ceil(totalUsers / usersPerPage);
 
+	const { state } = useSidebar();
+	const width = state === 'expanded'
+		? 'calc(100vw - var(--sidebar-width) - 50px)'
+		: 'calc(100vw - 50px)';
+
 	return (
 		<div>
 			<div className="flex justify-between items-center mb-8">
@@ -139,7 +145,9 @@ export default function Users() {
 			</div>
 
 			<ScrollArea
-				className="w-full rounded-md border">
+				style={{ width }} // Используйте style вместо className для динамической ширины
+				className="rounded-md border" // Удалите w-[...] из className
+			>
 				<Table>
 					<TableHeader>
 						<TableRow>
