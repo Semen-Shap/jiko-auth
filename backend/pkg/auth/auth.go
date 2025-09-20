@@ -108,9 +108,51 @@ func (s *AuthService) Register(c *gin.Context) {
 	}
 
 	if exitingUserByEmail != nil {
-		logger.Info("Registration attempt with existing email", zap.String("email", req.Email))
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Пользователь с таким email уже зарегистрирован"})
-		return
+		if exitingUserByEmail.EmailVerified {
+			logger.Info("Registration attempt with existing verified email", zap.String("email", req.Email))
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Пользователь с таким email уже зарегистрирован"})
+			return
+		} else {
+			// Пользователь существует, но не верифицирован
+			// Проверяем, прошло ли достаточно времени с момента последней отправки
+			if time.Since(exitingUserByEmail.EmailVerificationSentAt) > 3*time.Minute {
+				// Генерируем новый токен
+				newToken, err := GenerateVerificationToken()
+				if err != nil {
+					logger.Error("Failed to generate verification token", zap.Error(err))
+					c.JSON(http.StatusInternalServerError, gin.H{"error": "Registration failed"})
+					return
+				}
+
+				// Обновляем токен и время отправки
+				exitingUserByEmail.EmailVerificationToken = &newToken
+				exitingUserByEmail.EmailVerificationSentAt = time.Now()
+
+				if err := s.userRepo.UpdateUser(ctx, exitingUserByEmail); err != nil {
+					logger.Error("Failed to update user verification token", zap.Error(err))
+					c.JSON(http.StatusInternalServerError, gin.H{"error": "Registration failed"})
+					return
+				}
+
+				// Отправляем письмо
+				if s.cfg.AppEnv == "production" {
+					if err := s.emailService.SendVerificationEmail(exitingUserByEmail.Email, newToken); err != nil {
+						logger.Error("Не удалось отправить письмо подтверждения",
+							zap.Error(err),
+							zap.String("email", exitingUserByEmail.Email))
+					}
+				}
+
+				logger.Info("Resent verification email for existing unverified user", zap.String("email", req.Email))
+				c.JSON(http.StatusOK, gin.H{
+					"message": "Письмо с подтверждением отправлено повторно. Проверьте вашу почту.",
+				})
+				return
+			} else {
+				c.JSON(http.StatusTooManyRequests, gin.H{"error": "Письмо уже было отправлено недавно. Попробуйте позже."})
+				return
+			}
+		}
 	}
 
 	// Хеширование пароля
