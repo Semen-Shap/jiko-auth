@@ -120,7 +120,6 @@ export default function Clients() {
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead>ID</TableHead>
                             <TableHead>Name</TableHead>
                             <TableHead>User</TableHead>
                             <TableHead>Redirect URIs</TableHead>
@@ -131,7 +130,6 @@ export default function Clients() {
                     <TableBody>
                         {clients.map((client) => (
                             <TableRow key={client.id}>
-                                <TableCell>{client.id}</TableCell>
                                 <TableCell>{client.name}</TableCell>
                                 <TableCell>{client.username}</TableCell>
                                 <TableCell>

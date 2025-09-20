@@ -145,13 +145,12 @@ export default function Users() {
 			</div>
 
 			<ScrollArea
-				style={{ width }} // Используйте style вместо className для динамической ширины
-				className="rounded-md border" // Удалите w-[...] из className
+				style={{ width }}
+				className="rounded-md border"
 			>
 				<Table>
 					<TableHeader>
 						<TableRow>
-							<TableHead>ID</TableHead>
 							<TableHead>Name</TableHead>
 							<TableHead>Email</TableHead>
 							<TableHead>Role</TableHead>
@@ -163,7 +162,6 @@ export default function Users() {
 					<TableBody>
 						{users.map((user) => (
 							<TableRow key={user.id}>
-								<TableCell>{user.id}</TableCell>
 								<TableCell>{user.username}</TableCell>
 								<TableCell>{user.email}</TableCell>
 								<TableCell>
@@ -263,7 +261,7 @@ export default function Users() {
 				user={userToDelete}
 				loading={loading}
 			/>
-			
+
 			{NotificationComponent}
 		</div>
 	);
