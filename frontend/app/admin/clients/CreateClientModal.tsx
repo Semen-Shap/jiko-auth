@@ -77,41 +77,41 @@ export function CreateClientModal({
 
     return (
         <Dialog open={isOpen} onOpenChange={handleClose}>
-            <DialogContent className="sm:max-w-[425px] bg-gray-800 border-gray-700">
+            <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle className="text-white">Создать OAuth клиента</DialogTitle>
-                    <DialogDescription className="text-gray-400">
+                    <DialogTitle>Создать OAuth клиента</DialogTitle>
+                    <DialogDescription>
                         Заполните информацию о новом OAuth клиенте
                     </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleSubmit}>
                     <div className="grid gap-4 py-4">
                         <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="client-name" className="text-right text-gray-300">
+                            <Label htmlFor="client-name" className="text-right">
                                 Имя клиента
                             </Label>
                             <Input
                                 id="client-name"
                                 value={form.name}
                                 onChange={(e) => setForm(prev => ({ ...prev, name: e.target.value }))}
-                                className="col-span-3 bg-gray-700 border-gray-600 text-white"
+                                className="col-span-3"
                                 required
                             />
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="client-username" className="text-right text-gray-300">
+                            <Label htmlFor="client-username" className="text-right">
                                 Имя пользователя
                             </Label>
                             <Input
                                 id="client-username"
                                 value={form.username}
                                 onChange={(e) => setForm(prev => ({ ...prev, username: e.target.value }))}
-                                className="col-span-3 bg-gray-700 border-gray-600 text-white"
+                                className="col-span-3"
                                 required
                             />
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="client-email" className="text-right text-gray-300">
+                            <Label htmlFor="client-email" className="text-right">
                                 Email
                             </Label>
                             <Input
@@ -119,12 +119,12 @@ export function CreateClientModal({
                                 type="email"
                                 value={form.email}
                                 onChange={(e) => setForm(prev => ({ ...prev, email: e.target.value }))}
-                                className="col-span-3 bg-gray-700 border-gray-600 text-white"
+                                className="col-span-3"
                                 required
                             />
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="client-password" className="text-right text-gray-300">
+                            <Label htmlFor="client-password" className="text-right">
                                 Пароль
                             </Label>
                             <Input
@@ -132,19 +132,19 @@ export function CreateClientModal({
                                 type="password"
                                 value={form.password}
                                 onChange={(e) => setForm(prev => ({ ...prev, password: e.target.value }))}
-                                className="col-span-3 bg-gray-700 border-gray-600 text-white"
+                                className="col-span-3"
                                 required
                             />
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="redirect-uris" className="text-right text-gray-300">
+                            <Label htmlFor="redirect-uris" className="text-right">
                                 Redirect URIs
                             </Label>
                             <Textarea
                                 id="redirect-uris"
                                 value={form.redirect_uris}
                                 onChange={(e) => setForm(prev => ({ ...prev, redirect_uris: e.target.value }))}
-                                className="col-span-3 bg-gray-700 border-gray-600 text-white"
+                                className="col-span-3"
                                 rows={4}
                                 placeholder="https://example.com/callback&#10;https://app.example.com/oauth/callback"
                                 required
@@ -156,15 +156,10 @@ export function CreateClientModal({
                             type="button"
                             variant="outline"
                             onClick={handleClose}
-                            className="border-gray-600 text-gray-300 hover:bg-gray-700"
                         >
                             Отмена
                         </Button>
-                        <Button
-                            type="submit"
-                            disabled={loading}
-                            className="bg-blue-600 hover:bg-blue-700"
-                        >
+                        <Button type="submit" disabled={loading}>
                             {loading ? 'Создание...' : 'Создать'}
                         </Button>
                     </DialogFooter>

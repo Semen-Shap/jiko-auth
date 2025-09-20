@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useNotification } from '@/components/Notification';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 export default function SignUp() {
 	const [form, setForm] = useState({
@@ -112,28 +113,27 @@ export default function SignUp() {
 	};
 
 	return (
-		<div className="min-h-screen bg-gray-900 flex items-center justify-center px-5">
-			<div className="absolute top-4 right-4">
+		<div className="min-h-screen flex items-center justify-center px-5">
+			<div className="absolute top-4 right-4 flex gap-2">
+				<ThemeToggle />
 				<Link href="/sign-in">
 					<Button variant="outline" size="sm">
 						Sign In
 					</Button>
 				</Link>
-			</div>
-
-			<Card className="w-full max-w-md bg-gray-800 border-gray-700">
+			</div>			<Card className="w-full max-w-md">
 				<CardHeader className="text-center">
-					<CardTitle className="text-2xl font-bold bg-gradient-to-r from-white to-cyan-400 bg-clip-text text-transparent">
+					<CardTitle className="text-2xl font-bold">
 						JIKO
 					</CardTitle>
-					<CardDescription className="text-gray-400">
+					<CardDescription>
 						Create your account
 					</CardDescription>
 				</CardHeader>
 				<CardContent>
 					<form onSubmit={handleSubmit} className="space-y-4">
 						<div className="space-y-2">
-							<Label htmlFor="username" className="text-white">
+							<Label htmlFor="username">
 								Username
 							</Label>
 							<Input
@@ -141,7 +141,6 @@ export default function SignUp() {
 								type="text"
 								value={form.username}
 								onChange={(e) => setForm(prev => ({ ...prev, username: e.target.value }))}
-								className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
 								required
 								minLength={3}
 							/>
@@ -150,7 +149,7 @@ export default function SignUp() {
 							)}
 						</div>
 						<div className="space-y-2">
-							<Label htmlFor="email" className="text-white">
+							<Label htmlFor="email">
 								Email
 							</Label>
 							<Input
@@ -158,7 +157,6 @@ export default function SignUp() {
 								type="email"
 								value={form.email}
 								onChange={(e) => setForm(prev => ({ ...prev, email: e.target.value }))}
-								className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
 								required
 							/>
 							{errors.email && (
@@ -166,7 +164,7 @@ export default function SignUp() {
 							)}
 						</div>
 						<div className="space-y-2">
-							<Label htmlFor="password" className="text-white">
+							<Label htmlFor="password">
 								Password
 							</Label>
 							<Input
@@ -174,11 +172,10 @@ export default function SignUp() {
 								type="password"
 								value={form.password}
 								onChange={(e) => setForm(prev => ({ ...prev, password: e.target.value }))}
-								className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
 								required
 								minLength={8}
 							/>
-							<p className="text-gray-400 text-xs">
+							<p className="text-xs">
 								Must contain uppercase, lowercase letters, numbers, and special characters
 							</p>
 							{errors.password && (
@@ -186,7 +183,7 @@ export default function SignUp() {
 							)}
 						</div>
 						<div className="space-y-2">
-							<Label htmlFor="confirmPassword" className="text-white">
+							<Label htmlFor="confirmPassword">
 								Confirm Password
 							</Label>
 							<Input
@@ -194,7 +191,6 @@ export default function SignUp() {
 								type="password"
 								value={form.confirmPassword}
 								onChange={(e) => setForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
-								className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
 								required
 							/>
 							{errors.confirmPassword && (
@@ -208,14 +204,14 @@ export default function SignUp() {
 								onCheckedChange={(checked) => setForm(prev => ({ ...prev, terms: checked as boolean }))}
 								required
 							/>
-							<Label htmlFor="terms" className="text-sm text-gray-400">
+							<Label htmlFor="terms" className="text-sm">
 								I accept the terms of use
 							</Label>
 						</div>
 						<Button
 							type="submit"
 							disabled={isLoading}
-							className="w-full bg-cyan-500 text-black hover:bg-cyan-400"
+							className="w-full"
 						>
 							{isLoading ? 'Регистрация...' : 'Sign Up'}
 						</Button>

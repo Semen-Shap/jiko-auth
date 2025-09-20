@@ -72,29 +72,29 @@ export function CreateUserModal({
 
     return (
         <Dialog open={isOpen} onOpenChange={handleClose}>
-            <DialogContent className="sm:max-w-[425px] bg-gray-800 border-gray-700">
+            <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle className="text-white">Создать пользователя</DialogTitle>
-                    <DialogDescription className="text-gray-400">
-                        Заполните информацию о новом пользователе
+                    <DialogTitle>Create User</DialogTitle>
+                    <DialogDescription>
+                        Fill in the information for the new user
                     </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleSubmit}>
                     <div className="grid gap-4 py-4">
                         <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="username" className="text-right text-gray-300">
-                                Имя пользователя
+                            <Label htmlFor="username" className="text-right">
+                                Username
                             </Label>
                             <Input
                                 id="username"
                                 value={form.username}
                                 onChange={(e) => setForm(prev => ({ ...prev, username: e.target.value }))}
-                                className="col-span-3 bg-gray-700 border-gray-600 text-white"
+                                className="col-span-3"
                                 required
                             />
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="email" className="text-right text-gray-300">
+                            <Label htmlFor="email" className="text-right">
                                 Email
                             </Label>
                             <Input
@@ -102,40 +102,40 @@ export function CreateUserModal({
                                 type="email"
                                 value={form.email}
                                 onChange={(e) => setForm(prev => ({ ...prev, email: e.target.value }))}
-                                className="col-span-3 bg-gray-700 border-gray-600 text-white"
+                                className="col-span-3"
                                 required
                             />
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="password" className="text-right text-gray-300">
-                                Пароль
+                            <Label htmlFor="password" className="text-right">
+                                Password
                             </Label>
                             <Input
                                 id="password"
                                 type="password"
                                 value={form.password}
                                 onChange={(e) => setForm(prev => ({ ...prev, password: e.target.value }))}
-                                className="col-span-3 bg-gray-700 border-gray-600 text-white"
+                                className="col-span-3"
                                 required
                             />
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="role" className="text-right text-gray-300">
-                                Роль
+                            <Label htmlFor="role" className="text-right">
+                                Role
                             </Label>
                             <Select
                                 value={form.role}
                                 onValueChange={(value: string) => setForm(prev => ({ ...prev, role: value }))}
                             >
-                                <SelectTrigger className="col-span-3 bg-gray-700 border-gray-600 text-white">
+                                <SelectTrigger className="col-span-3">
                                     <SelectValue />
                                 </SelectTrigger>
-                                <SelectContent className="bg-gray-800 border-gray-700">
-                                    <SelectItem value="user" className="text-white hover:bg-gray-700">
-                                        Пользователь
+                                <SelectContent>
+                                    <SelectItem value="user">
+                                        User
                                     </SelectItem>
-                                    <SelectItem value="admin" className="text-white hover:bg-gray-700">
-                                        Администратор
+                                    <SelectItem value="admin">
+                                        Admin
                                     </SelectItem>
                                 </SelectContent>
                             </Select>
@@ -146,16 +146,11 @@ export function CreateUserModal({
                             type="button"
                             variant="outline"
                             onClick={handleClose}
-                            className="border-gray-600 text-gray-300 hover:bg-gray-700"
                         >
-                            Отмена
+                            Cancel
                         </Button>
-                        <Button
-                            type="submit"
-                            disabled={loading}
-                            className="bg-blue-600 hover:bg-blue-700"
-                        >
-                            {loading ? 'Создание...' : 'Создать'}
+                        <Button type="submit" disabled={loading}>
+                            {loading ? 'Creating...' : 'Create'}
                         </Button>
                     </DialogFooter>
                 </form>

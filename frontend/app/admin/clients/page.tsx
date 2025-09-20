@@ -101,46 +101,42 @@ export default function Clients() {
                 <h2 className="text-2xl font-medium text-white">OAuth Клиенты</h2>
                 <Button
                     onClick={() => setShowCreateModal(true)}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
                 >
                     + Создать клиента
                 </Button>
             </div>
 
-            <div className="bg-gray-800 rounded-lg overflow-hidden border border-gray-700 mb-6">
+            <div className="rounded-md border">
                 <Table>
-                    <TableHeader className="bg-gray-700">
+                    <TableHeader>
                         <TableRow>
-                            <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">ID</TableHead>
-                            <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Имя</TableHead>
-                            <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Пользователь</TableHead>
-                            <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Email</TableHead>
-                            <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Redirect URIs</TableHead>
-                            <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Создан</TableHead>
-                            <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Действия</TableHead>
+                            <TableHead>ID</TableHead>
+                            <TableHead>Имя</TableHead>
+                            <TableHead>Пользователь</TableHead>
+                            <TableHead>Email</TableHead>
+                            <TableHead>Redirect URIs</TableHead>
+                            <TableHead>Создан</TableHead>
+                            <TableHead>Действия</TableHead>
                         </TableRow>
                     </TableHeader>
-                    <TableBody className="divide-y divide-gray-700">
+                    <TableBody>
                         {clients.map((client) => (
-                            <TableRow key={client.id} className="hover:bg-gray-700">
-                                <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{client.id}</TableCell>
-                                <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{client.name}</TableCell>
-                                <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{client.username}</TableCell>
-                                <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{client.email}</TableCell>
-                                <TableCell className="px-6 py-4 text-sm text-gray-400">
+                            <TableRow key={client.id}>
+                                <TableCell>{client.id}</TableCell>
+                                <TableCell>{client.name}</TableCell>
+                                <TableCell>{client.username}</TableCell>
+                                <TableCell>{client.email}</TableCell>
+                                <TableCell>
                                     {client.redirect_uris.map((uri, index) => (
                                         <div key={index}>{uri}</div>
                                     ))}
                                 </TableCell>
-                                <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
-                                    {formatDate(client.created_at)}
-                                </TableCell>
-                                <TableCell className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <TableCell>{formatDate(client.created_at)}</TableCell>
+                                <TableCell>
                                     <Button
                                         variant="ghost"
                                         size="sm"
                                         onClick={() => openDeleteDialog(client)}
-                                        className="text-red-400 hover:text-red-300"
                                     >
                                         Удалить
                                     </Button>

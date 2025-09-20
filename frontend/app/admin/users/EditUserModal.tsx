@@ -98,29 +98,29 @@ export function EditUserModal({
 
     return (
         <Dialog open={isOpen} onOpenChange={handleClose}>
-            <DialogContent className="sm:max-w-[425px] bg-gray-800 border-gray-700">
+            <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle className="text-white">Редактировать пользователя</DialogTitle>
-                    <DialogDescription className="text-gray-400">
+                    <DialogTitle>Редактировать пользователя</DialogTitle>
+                    <DialogDescription>
                         Измените информацию о пользователе
                     </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleSubmit}>
                     <div className="grid gap-4 py-4">
                         <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="edit-username" className="text-right text-gray-300">
+                            <Label htmlFor="edit-username" className="text-right">
                                 Имя пользователя
                             </Label>
                             <Input
                                 id="edit-username"
                                 value={form.username}
                                 onChange={(e) => setForm(prev => ({ ...prev, username: e.target.value }))}
-                                className="col-span-3 bg-gray-700 border-gray-600 text-white"
+                                className="col-span-3"
                                 required
                             />
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="edit-email" className="text-right text-gray-300">
+                            <Label htmlFor="edit-email" className="text-right">
                                 Email
                             </Label>
                             <Input
@@ -128,12 +128,12 @@ export function EditUserModal({
                                 type="email"
                                 value={form.email}
                                 onChange={(e) => setForm(prev => ({ ...prev, email: e.target.value }))}
-                                className="col-span-3 bg-gray-700 border-gray-600 text-white"
+                                className="col-span-3"
                                 required
                             />
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="edit-password" className="text-right text-gray-300">
+                            <Label htmlFor="edit-password" className="text-right">
                                 Новый пароль
                             </Label>
                             <Input
@@ -141,33 +141,33 @@ export function EditUserModal({
                                 type="password"
                                 value={form.password}
                                 onChange={(e) => setForm(prev => ({ ...prev, password: e.target.value }))}
-                                className="col-span-3 bg-gray-700 border-gray-600 text-white"
+                                className="col-span-3"
                                 placeholder="Оставьте пустым, чтобы не менять"
                             />
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="edit-role" className="text-right text-gray-300">
+                            <Label htmlFor="edit-role" className="text-right">
                                 Роль
                             </Label>
                             <Select
                                 value={form.role}
                                 onValueChange={(value: string) => setForm(prev => ({ ...prev, role: value }))}
                             >
-                                <SelectTrigger className="col-span-3 bg-gray-700 border-gray-600 text-white">
+                                <SelectTrigger className="col-span-3">
                                     <SelectValue />
                                 </SelectTrigger>
-                                <SelectContent className="bg-gray-800 border-gray-700">
-                                    <SelectItem value="user" className="text-white hover:bg-gray-700">
+                                <SelectContent>
+                                    <SelectItem value="user">
                                         Пользователь
                                     </SelectItem>
-                                    <SelectItem value="admin" className="text-white hover:bg-gray-700">
+                                    <SelectItem value="admin">
                                         Администратор
                                     </SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="edit-email-verified" className="text-right text-gray-300">
+                            <Label htmlFor="edit-email-verified" className="text-right">
                                 Email подтвержден
                             </Label>
                             <div className="col-span-3 flex items-center">
@@ -175,7 +175,6 @@ export function EditUserModal({
                                     id="edit-email-verified"
                                     checked={form.email_verified}
                                     onCheckedChange={(checked) => setForm(prev => ({ ...prev, email_verified: checked as boolean }))}
-                                    className="border-gray-600"
                                 />
                             </div>
                         </div>
@@ -185,15 +184,10 @@ export function EditUserModal({
                             type="button"
                             variant="outline"
                             onClick={handleClose}
-                            className="border-gray-600 text-gray-300 hover:bg-gray-700"
                         >
                             Отмена
                         </Button>
-                        <Button
-                            type="submit"
-                            disabled={loading}
-                            className="bg-blue-600 hover:bg-blue-700"
-                        >
+                        <Button type="submit" disabled={loading}>
                             {loading ? 'Сохранение...' : 'Сохранить'}
                         </Button>
                     </DialogFooter>

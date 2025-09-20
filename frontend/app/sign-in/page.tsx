@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useNotification } from '@/components/Notification';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 export default function SignIn() {
     const [form, setForm] = useState({
@@ -89,8 +90,9 @@ export default function SignIn() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-900 flex items-center justify-center px-5">
-            <div className="absolute top-4 right-4">
+        <div className="min-h-screen flex items-center justify-center px-5">
+            <div className="absolute top-4 right-4 flex gap-2">
+                <ThemeToggle />
                 <Link href="/sign-up">
                     <Button variant="outline" size="sm">
                         Sign Up
@@ -98,19 +100,19 @@ export default function SignIn() {
                 </Link>
             </div>
 
-            <Card className="w-full max-w-md bg-gray-800 border-gray-700">
+            <Card className="w-full max-w-md">
                 <CardHeader className="text-center">
-                    <CardTitle className="text-2xl font-bold bg-gradient-to-r from-white to-cyan-400 bg-clip-text text-transparent">
+                    <CardTitle className="text-2xl font-bold">
                         JIKO
                     </CardTitle>
-                    <CardDescription className="text-gray-400">
+                    <CardDescription>
                         Sign in to your account
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div className="space-y-2">
-                            <Label htmlFor="identifier" className="text-white">
+                            <Label htmlFor="identifier">
                                 Email or Username
                             </Label>
                             <Input
@@ -118,7 +120,6 @@ export default function SignIn() {
                                 type="text"
                                 value={form.identifier}
                                 onChange={(e) => setForm(prev => ({ ...prev, identifier: e.target.value }))}
-                                className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
                                 required
                             />
                             {errors.identifier && (
@@ -126,7 +127,7 @@ export default function SignIn() {
                             )}
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="password" className="text-white">
+                            <Label htmlFor="password">
                                 Password
                             </Label>
                             <Input
@@ -134,7 +135,6 @@ export default function SignIn() {
                                 type="password"
                                 value={form.password}
                                 onChange={(e) => setForm(prev => ({ ...prev, password: e.target.value }))}
-                                className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
                                 required
                             />
                             {errors.password && (
@@ -144,7 +144,7 @@ export default function SignIn() {
                         <Button
                             type="submit"
                             disabled={isLoading}
-                            className="w-full bg-cyan-500 text-black hover:bg-cyan-400"
+                            className="w-full"
                         >
                             {isLoading ? 'Вход...' : 'Sign In'}
                         </Button>

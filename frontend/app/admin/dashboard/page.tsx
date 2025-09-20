@@ -23,8 +23,8 @@ export default function Dashboard() {
     return (
         <div>
             <div className="flex justify-between items-center mb-8">
-                <h2 className="text-2xl font-medium text-white">Dashboard</h2>
-                <div className="text-sm text-gray-400">
+                <h2 className="text-2xl font-medium">Dashboard</h2>
+                <div className="text-sm text-muted-foreground">
                     {new Date().toLocaleDateString('ru-RU')}
                 </div>
             </div>
@@ -33,25 +33,21 @@ export default function Dashboard() {
                     icon={Users}
                     title="All users"
                     value={stats?.total_users || 0}
-                    color="bg-blue-600"
                 />
                 <StatCard
                     icon={CheckCircle}
                     title="Verified users"
                     value={stats?.total_verified_users || 0}
-                    color="bg-green-600"
                 />
                 <StatCard
                     icon={Link}
                     title="OAuth clients"
                     value={stats?.total_clients || 0}
-                    color="bg-purple-600"
                 />
                 <StatCard
                     icon={TrendingUp}
                     title="New users today"
                     value={stats?.new_users_today || 0}
-                    color="bg-orange-600"
                 />
             </div>
         </div>

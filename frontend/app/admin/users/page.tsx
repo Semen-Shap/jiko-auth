@@ -132,52 +132,48 @@ export default function Users() {
                 <h2 className="text-2xl font-medium text-white">Пользователи</h2>
                 <Button
                     onClick={() => setShowCreateModal(true)}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
                 >
                     + Создать пользователя
                 </Button>
             </div>
 
-            <div className="bg-gray-800 rounded-lg overflow-hidden border border-gray-700 mb-6">
+            <div className="rounded-md border">
                 <Table>
-                    <TableHeader className="bg-gray-700">
+                    <TableHeader>
                         <TableRow>
-                            <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">ID</TableHead>
-                            <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Имя</TableHead>
-                            <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Email</TableHead>
-                            <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Роль</TableHead>
-                            <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Верификация</TableHead>
-                            <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Создан</TableHead>
-                            <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Действия</TableHead>
+                            <TableHead>ID</TableHead>
+                            <TableHead>Имя</TableHead>
+                            <TableHead>Email</TableHead>
+                            <TableHead>Роль</TableHead>
+                            <TableHead>Верификация</TableHead>
+                            <TableHead>Создан</TableHead>
+                            <TableHead>Действия</TableHead>
                         </TableRow>
                     </TableHeader>
-                    <TableBody className="divide-y divide-gray-700">
+                    <TableBody>
                         {users.map((user) => (
-                            <TableRow key={user.id} className="hover:bg-gray-700">
-                                <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{user.id}</TableCell>
-                                <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{user.username}</TableCell>
-                                <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{user.email}</TableCell>
-                                <TableCell className="px-6 py-4 whitespace-nowrap">
+                            <TableRow key={user.id}>
+                                <TableCell>{user.id}</TableCell>
+                                <TableCell>{user.username}</TableCell>
+                                <TableCell>{user.email}</TableCell>
+                                <TableCell>
                                     <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${user.role === 'admin' ? 'bg-purple-600 text-white' : 'bg-gray-600 text-gray-300'
                                         }`}>
                                         {user.role}
                                     </span>
                                 </TableCell>
-                                <TableCell className="px-6 py-4 whitespace-nowrap">
+                                <TableCell>
                                     <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${user.email_verified ? 'bg-green-600 text-white' : 'bg-red-600 text-white'
                                         }`}>
                                         {user.email_verified ? 'Да' : 'Нет'}
                                     </span>
                                 </TableCell>
-                                <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
-                                    {formatDate(user.created_at)}
-                                </TableCell>
-                                <TableCell className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <TableCell>{formatDate(user.created_at)}</TableCell>
+                                <TableCell>
                                     <Button
                                         variant="ghost"
                                         size="sm"
                                         onClick={() => openEditModal(user)}
-                                        className="text-blue-400 hover:text-blue-300 mr-3"
                                     >
                                         Изменить
                                     </Button>
@@ -186,7 +182,6 @@ export default function Users() {
                                         size="sm"
                                         onClick={() => openDeleteDialog(user)}
                                         disabled={user.role === 'admin'}
-                                        className="text-red-400 hover:text-red-300 disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
                                         Удалить
                                     </Button>

@@ -1,11 +1,13 @@
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-gray-900 flex items-center justify-center px-5">
+    <div className="min-h-screen flex items-center justify-center px-5">
       <div className="absolute top-4 right-4 flex gap-2">
+        <ThemeToggle  />
         <Link href="/sign-in">
           <Button variant="outline" size="sm">
             Sign In
@@ -18,22 +20,22 @@ export default function Home() {
         </Link>
       </div>
 
-      <Card className="w-full max-w-md bg-gray-800 border-gray-700">
+      <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold bg-gradient-to-r from-white to-cyan-400 bg-clip-text text-transparent">
+          <CardTitle className="text-2xl font-bold">
             JIKO
           </CardTitle>
-          <CardDescription className="text-gray-400">
+          <CardDescription>
             Welcome to JIKO Authentication System
           </CardDescription>
         </CardHeader>
         <CardContent className="text-center">
-          <p className="text-gray-300 mb-6">
+          <p className="mb-6">
             Choose an option to get started
           </p>
           <div className="space-y-3">
             <Link href="/sign-in" className="block">
-              <Button className="w-full bg-cyan-500 text-black hover:bg-cyan-400">
+              <Button className="w-full">
                 Sign In
               </Button>
             </Link>

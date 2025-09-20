@@ -2,6 +2,7 @@
 
 import { Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 interface AdminHeaderProps {
     onLogout: () => void;
@@ -9,14 +10,14 @@ interface AdminHeaderProps {
 
 export default function AdminHeader({ onLogout }: AdminHeaderProps) {
     return (
-        <div className="bg-gray-900 text-white p-4 border-b border-gray-800">
+        <div className="p-4 border-b">
             <div className="flex justify-between items-center max-w-7xl mx-auto">
                 <div className="flex items-center gap-3">
-                    <Shield className="w-8 h-8 text-blue-600" />
+                    <Shield className="w-8 h-8" />
                     <h1 className="text-lg font-medium">JIKO Admin</h1>
                 </div>
                 <div className="flex items-center gap-4">
-                    <span className="text-sm text-gray-400">Admin</span>
+                    <ThemeToggle />
                     <Button
                         variant="destructive"
                         size="sm"
