@@ -25,7 +25,7 @@ export default function UserProfile() {
 
     if (!mounted || isLoading) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
+            <div className="min-h-[calc(100vh-50px)] flex items-center justify-center">
                 <div>Loading...</div>
             </div>
         );
@@ -36,7 +36,7 @@ export default function UserProfile() {
     }
 
     return (
-        <div className="min-h-screen bg-background">
+        <div className="w-full">
             {/* Profile Content */}
             <div className="container mx-auto px-4 py-8">
                 <div className="max-w-2xl mx-auto">

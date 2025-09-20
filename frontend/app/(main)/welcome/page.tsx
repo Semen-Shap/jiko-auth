@@ -22,7 +22,7 @@ export default function Home() {
 
     if (!mounted || isLoading) {
         return (
-            <div className="h-full flex items-center justify-center">
+            <div className="min-h-[calc(100vh-50px)] flex items-center justify-center">
                 <div>Loading...</div>
             </div>
         );
@@ -33,7 +33,7 @@ export default function Home() {
     }
 
     return (
-        <div className="h-full min-w-[512px] flex items-center justify-center px-5">
+        <div className="min-h-[calc(100vh-50px)] flex items-center justify-center px-5">
             <Card className="w-full max-w-md">
                 <CardHeader className="text-center">
                     <CardTitle className="text-2xl font-bold">

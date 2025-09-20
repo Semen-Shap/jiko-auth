@@ -22,9 +22,9 @@ export function Header() {
 	}
 
 	return (
-		<header className="min-w-screen h-[50px] border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+		<header className="w-full h-[50px] border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex-shrink-0">
 			<div className="container mx-auto px-4 py-3">
-				<div className="flex items-center justify-between">
+				<div className="flex items-center justify-between h-full">
 					{/* Logo/Brand */}
 					<div className="flex items-center">
 						<Link href="/" className="text-xl font-bold">
