@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useStats } from '../../../lib/hooks/useAdmin';
-import { useAdminAuth } from '../../../lib/hooks/useAdmin';
+import { useStats } from '@/lib/hooks/useAdmin';
+import { useAdminAuth } from '@/lib/hooks/useAdmin';
 import { Users, CheckCircle, Link, TrendingUp } from 'lucide-react';
 import StatCard from './StatCard';
 

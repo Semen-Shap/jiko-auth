@@ -1,8 +1,37 @@
+"use client";
+
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/lib/hooks/useAuth';
+import { useEffect, useState } from 'react';
 
 export default function Welcome() {
+  const { isAuthenticated, isLoading } = useAuth();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (mounted && !isLoading && isAuthenticated) {
+      window.location.href = '/welcome';
+    }
+  }, [mounted, isLoading, isAuthenticated]);
+
+  if (!mounted || isLoading) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <div>Loading...</div>
+      </div>
+    );
+  }
+
+  if (isAuthenticated) {
+    return null; // Will redirect in useEffect
+  }
+
   return (
     <div className="h-full min-w-[512px] flex items-center justify-center">
       <div className="absolute top-4 right-4 flex gap-2">

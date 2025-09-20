@@ -6,11 +6,11 @@ export default function MainLayout({
     children: React.ReactNode;
 }>) {
     return (
-        <div>
+        <>
             <Header />
             <main className="min-h-screen flex-1 flex flex-col items-center justify-center">
                 {children}
             </main>
-        </div>
+        </>
     );
 }

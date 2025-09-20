@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useUsers, User } from '../../../lib/hooks/useAdmin';
-import { useAdminAuth } from '../../../lib/hooks/useAdmin';
-import { useNotification } from '../../../components/Notification';
+import { useUsers, User } from '@/lib/hooks/useAdmin';
+import { useAdminAuth } from '@/lib/hooks/useAdmin';
+import { useNotification } from '@/components/Notification';
 import { CreateUserModal } from './CreateUserModal';
 import { EditUserModal } from './EditUserModal';
 import { DeleteUserModal } from './DeleteUserModal';
