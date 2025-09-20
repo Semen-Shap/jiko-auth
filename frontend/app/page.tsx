@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ThemeToggle } from '@/components/ThemeToggle';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { useEffect, useState } from 'react';
 
@@ -35,20 +34,6 @@ export default function Home() {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-5">
-      <div className="absolute top-4 right-4 flex gap-2">
-        {isAdmin && (
-          <Link href="/admin">
-            <Button variant="outline" size="sm">
-              Admin Panel
-            </Button>
-          </Link>
-        )}
-        <ThemeToggle />
-        <Button variant="outline" size="sm" onClick={logout}>
-          Logout
-        </Button>
-      </div>
-
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold">

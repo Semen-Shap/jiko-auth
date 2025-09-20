@@ -8,7 +8,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useNotification } from '@/components/Notification';
-import { ThemeToggle } from '@/components/ThemeToggle';
 
 export default function SignUp() {
 	const [form, setForm] = useState({
@@ -115,7 +114,6 @@ export default function SignUp() {
 	return (
 		<div className="min-h-screen flex items-center justify-center px-5">
 			<div className="absolute top-4 right-4 flex gap-2">
-				<ThemeToggle />
 				<Link href="/sign-in">
 					<Button variant="outline" size="sm">
 						Sign In

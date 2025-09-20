@@ -1,13 +1,11 @@
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ThemeToggle } from '@/components/ThemeToggle';
 
 export default function Welcome() {
     return (
         <div className="min-h-screen flex items-center justify-center px-5">
             <div className="absolute top-4 right-4 flex gap-2">
-                <ThemeToggle />
                 <Link href="/sign-in">
                     <Button variant="outline" size="sm">
                         Sign In
