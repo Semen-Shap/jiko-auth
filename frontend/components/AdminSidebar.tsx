@@ -11,6 +11,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
+import { ThemeToggle } from './ThemeToggle';
 
 export default function AdminSidebar() {
     const pathname = usePathname();
@@ -25,12 +26,12 @@ export default function AdminSidebar() {
         <Sidebar variant="inset">
             <SidebarHeader>
                 <div className="flex items-center gap-2 px-2 py-2">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                        <BarChart3 className="h-4 w-4" />
-                    </div>
                     <div className="flex flex-col">
-                        <span className="text-sm font-semibold">Admin Panel</span>
-                        <span className="text-xs text-muted-foreground">JIKO</span>
+                        <div className="flex items-center">
+                            <Link href="/" className="text-xl font-bold">
+                                JIKO
+                            </Link>
+                        </div>
                     </div>
                 </div>
             </SidebarHeader>
@@ -51,6 +52,9 @@ export default function AdminSidebar() {
                         </SidebarMenuItem>
                     ))}
                 </SidebarMenu>
+                <div className="mt-auto p-2">
+                    <ThemeToggle />
+                </div>
             </SidebarContent>
         </Sidebar>
     );
