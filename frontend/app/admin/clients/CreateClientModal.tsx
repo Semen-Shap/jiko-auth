@@ -13,15 +13,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { useAuth } from '@/lib/hooks/useAuth';
 
 interface CreateClientModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSubmit: (clientData: {
         name: string;
-        username: string;
-        email: string;
-        password: string;
         redirect_uris: string[];
     }) => Promise<any>;
     loading?: boolean;
@@ -33,19 +31,25 @@ export function CreateClientModal({
     onSubmit,
     loading = false
 }: CreateClientModalProps) {
+    const { user } = useAuth();
     const [form, setForm] = useState({
         name: '',
-        username: '',
-        email: '',
-        password: '',
         redirect_uris: ''
     });
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
+        if (!user) {
+            console.error('No authenticated user found');
+            return;
+        }
+
         const clientData = {
-            ...form,
+            name: form.name,
+            username: user.username,
+            email: user.email || '',
+            password: '', // Password will be generated on backend
             redirect_uris: form.redirect_uris.split('\n')
                 .map(uri => uri.trim())
                 .filter(uri => uri.length > 0)
@@ -55,9 +59,6 @@ export function CreateClientModal({
         if (result) {
             setForm({
                 name: '',
-                username: '',
-                email: '',
-                password: '',
                 redirect_uris: ''
             });
             onClose();
@@ -67,9 +68,6 @@ export function CreateClientModal({
     const handleClose = () => {
         setForm({
             name: '',
-            username: '',
-            email: '',
-            password: '',
             redirect_uris: ''
         });
         onClose();
@@ -81,11 +79,18 @@ export function CreateClientModal({
                 <DialogHeader>
                     <DialogTitle>Create OAuth Client</DialogTitle>
                     <DialogDescription>
-                        Fill in the information for the new OAuth client
+                        Fill in the client information. User data will be taken from your current account.
                     </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleSubmit}>
                     <div className="grid gap-4 py-4">
+                        {user && (
+                            <div className="bg-muted p-3 rounded-md">
+                                <p className="text-sm text-muted-foreground mb-1">Client will be created for:</p>
+                                <p className="text-sm font-medium">{user.username}</p>
+                                {user.email && <p className="text-sm text-muted-foreground">{user.email}</p>}
+                            </div>
+                        )}
                         <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="client-name" className="text-right">
                                 Client Name
@@ -94,44 +99,6 @@ export function CreateClientModal({
                                 id="client-name"
                                 value={form.name}
                                 onChange={(e) => setForm(prev => ({ ...prev, name: e.target.value }))}
-                                className="col-span-3"
-                                required
-                            />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="client-username" className="text-right">
-                                Username
-                            </Label>
-                            <Input
-                                id="client-username"
-                                value={form.username}
-                                onChange={(e) => setForm(prev => ({ ...prev, username: e.target.value }))}
-                                className="col-span-3"
-                                required
-                            />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="client-email" className="text-right">
-                                Email
-                            </Label>
-                            <Input
-                                id="client-email"
-                                type="email"
-                                value={form.email}
-                                onChange={(e) => setForm(prev => ({ ...prev, email: e.target.value }))}
-                                className="col-span-3"
-                                required
-                            />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="client-password" className="text-right">
-                                Password
-                            </Label>
-                            <Input
-                                id="client-password"
-                                type="password"
-                                value={form.password}
-                                onChange={(e) => setForm(prev => ({ ...prev, password: e.target.value }))}
                                 className="col-span-3"
                                 required
                             />

@@ -220,50 +220,25 @@ export function useClients(token: string | null) {
         if (!token) return;
 
         try {
-            // First, create the user
-            const userResponse = await fetch('/api/v1/admin/users', {
+            const response = await fetch('/api/v1/admin/oauth/clients', {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    username: clientData.username,
-                    email: clientData.email,
-                    password: clientData.password,
-                    role: 'user'
-                })
-            });
-
-            if (!userResponse.ok) {
-                const errorData = await userResponse.json();
-                console.error('Error creating user:', errorData);
-                return null;
-            }
-
-            const user = await userResponse.json();
-
-            // Then, create the client with the user ID
-            const clientResponse = await fetch('/api/v1/admin/clients', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    user_id: user.id,
                     name: clientData.name,
                     redirect_uris: clientData.redirect_uris
                 })
             });
 
-            if (!clientResponse.ok) {
-                const errorData = await clientResponse.json();
+            if (!response.ok) {
+                const errorData = await response.json();
                 console.error('Error creating client:', errorData);
                 return null;
             }
 
-            const client = await clientResponse.json();
+            const client = await response.json();
             return client;
         } catch (error) {
             console.error('Error creating client:', error);

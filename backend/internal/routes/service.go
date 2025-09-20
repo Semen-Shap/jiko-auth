@@ -63,11 +63,6 @@ func SetupRouter(
 		api.GET("/oauth/authorize", oauthHandler.Authorize)
 		api.POST("/oauth/token", oauthHandler.Token)
 
-		// Client management routes
-		api.GET("/clients", middleware.AuthMiddleware(jwtService), oauthHandler.GetClients)
-		api.POST("/clients", middleware.AuthMiddleware(jwtService), oauthHandler.CreateClient)
-		api.POST("/clients/:id/tokens", middleware.AuthMiddleware(jwtService), oauthHandler.CreateToken)
-
 		// Admin routes
 		admin := api.Group("/admin")
 		admin.Use(middleware.AdminMiddleware(jwtService))
@@ -87,6 +82,11 @@ func SetupRouter(
 			admin.POST("/clients", oauthHandler.AdminCreateClient)
 			admin.PUT("/clients/:id", oauthHandler.AdminUpdateClient)
 			admin.DELETE("/clients/:id", oauthHandler.AdminDeleteClient)
+
+			// OAuth Client management for admins
+			admin.GET("/oauth/clients", oauthHandler.GetClients)
+			admin.POST("/oauth/clients", oauthHandler.CreateClient)
+			admin.POST("/oauth/clients/:id/tokens", oauthHandler.CreateToken)
 		}
 
 		// Health check

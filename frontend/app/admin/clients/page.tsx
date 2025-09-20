@@ -52,9 +52,6 @@ export default function Clients() {
 
     const handleCreateClient = async (clientData: {
         name: string;
-        username: string;
-        email: string;
-        password: string;
         redirect_uris: string[];
     }) => {
         const result = await createClient(clientData);
