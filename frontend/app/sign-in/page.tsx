@@ -27,19 +27,19 @@ export default function SignIn() {
         const newErrors: Record<string, string> = {};
 
         if (!form.identifier) {
-            newErrors.identifier = 'Email или имя пользователя обязательно';
+            newErrors.identifier = 'Email or username is required';
         } else if (form.identifier.includes('@')) {
             if (!validateEmail(form.identifier)) {
-                newErrors.identifier = 'Введите корректный email';
+                newErrors.identifier = 'Enter a valid email';
             }
         } else {
             if (form.identifier.length < 3) {
-                newErrors.identifier = 'Имя пользователя должно содержать не менее 3 символов';
+                newErrors.identifier = 'Username must be at least 3 characters';
             }
         }
 
         if (!form.password) {
-            newErrors.password = 'Пароль обязателен';
+            newErrors.password = 'Password is required';
         }
 
         setErrors(newErrors);
@@ -63,13 +63,13 @@ export default function SignIn() {
             const data = await response.json();
 
             if (response.ok) {
-                showNotification(data.message || 'Успешно!', 'success');
+                showNotification(data.message || 'Success!', 'success');
 
-                // Проверяем, является ли пользователь админом
+                // Check if user is admin
                 if (data.user && data.user.role === 'admin') {
                     localStorage.setItem('admin_token', data.access_token);
                     localStorage.setItem('admin_user', JSON.stringify(data.user));
-                    showNotification('Добро пожаловать в админ панель!', 'success');
+                    showNotification('Welcome to the admin panel!', 'success');
                     setTimeout(() => {
                         window.location.href = '/admin';
                     }, 1000);
@@ -79,11 +79,11 @@ export default function SignIn() {
                     }, 1000);
                 }
             } else {
-                showNotification(data.error || 'Произошла ошибка', 'error');
+                showNotification(data.error || 'An error occurred', 'error');
             }
         } catch (error) {
             console.error('Login error:', error);
-            showNotification('Произошла ошибка при отправке формы', 'error');
+            showNotification('An error occurred while submitting the form', 'error');
         } finally {
             setIsLoading(false);
         }
@@ -146,7 +146,7 @@ export default function SignIn() {
                             disabled={isLoading}
                             className="w-full"
                         >
-                            {isLoading ? 'Вход...' : 'Sign In'}
+                            {isLoading ? 'Signing in...' : 'Sign In'}
                         </Button>
                     </form>
                 </CardContent>

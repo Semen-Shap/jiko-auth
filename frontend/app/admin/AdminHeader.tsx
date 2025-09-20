@@ -1,6 +1,5 @@
 'use client';
 
-import { Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ThemeToggle';
 
@@ -13,8 +12,7 @@ export default function AdminHeader({ onLogout }: AdminHeaderProps) {
         <div className="p-4 border-b">
             <div className="flex justify-between items-center max-w-7xl mx-auto">
                 <div className="flex items-center gap-3">
-                    <Shield className="w-8 h-8" />
-                    <h1 className="text-lg font-medium">JIKO Admin</h1>
+                    <h1 className="text-lg font-medium">Admin Panel</h1>
                 </div>
                 <div className="flex items-center gap-4">
                     <ThemeToggle />
@@ -24,7 +22,7 @@ export default function AdminHeader({ onLogout }: AdminHeaderProps) {
                         onClick={onLogout}
                         className="px-3 py-1.5 text-sm"
                     >
-                        Выйти
+                        Logout
                     </Button>
                 </div>
             </div>

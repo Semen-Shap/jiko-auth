@@ -100,16 +100,16 @@ export function EditUserModal({
         <Dialog open={isOpen} onOpenChange={handleClose}>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle>Редактировать пользователя</DialogTitle>
+                    <DialogTitle>Edit User</DialogTitle>
                     <DialogDescription>
-                        Измените информацию о пользователе
+                        Edit user information
                     </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleSubmit}>
                     <div className="grid gap-4 py-4">
                         <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="edit-username" className="text-right">
-                                Имя пользователя
+                                Username
                             </Label>
                             <Input
                                 id="edit-username"
@@ -134,7 +134,7 @@ export function EditUserModal({
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="edit-password" className="text-right">
-                                Новый пароль
+                                New Password
                             </Label>
                             <Input
                                 id="edit-password"
@@ -142,12 +142,12 @@ export function EditUserModal({
                                 value={form.password}
                                 onChange={(e) => setForm(prev => ({ ...prev, password: e.target.value }))}
                                 className="col-span-3"
-                                placeholder="Оставьте пустым, чтобы не менять"
+                                placeholder="Leave blank to keep unchanged"
                             />
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="edit-role" className="text-right">
-                                Роль
+                                Role
                             </Label>
                             <Select
                                 value={form.role}
@@ -158,17 +158,17 @@ export function EditUserModal({
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="user">
-                                        Пользователь
+                                        User
                                     </SelectItem>
                                     <SelectItem value="admin">
-                                        Администратор
+                                        Administrator
                                     </SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="edit-email-verified" className="text-right">
-                                Email подтвержден
+                                Email Verified
                             </Label>
                             <div className="col-span-3 flex items-center">
                                 <Checkbox
@@ -185,10 +185,10 @@ export function EditUserModal({
                             variant="outline"
                             onClick={handleClose}
                         >
-                            Отмена
+                            Cancel
                         </Button>
                         <Button type="submit" disabled={loading}>
-                            {loading ? 'Сохранение...' : 'Сохранить'}
+                            {loading ? 'Saving...' : 'Save'}
                         </Button>
                     </DialogFooter>
                 </form>

@@ -36,34 +36,34 @@ export default function SignUp() {
 		const newErrors: Record<string, string> = {};
 
 		if (!form.username) {
-			newErrors.username = 'Имя пользователя обязательно';
+			newErrors.username = 'Username is required';
 		} else if (form.username.length < 3) {
-			newErrors.username = 'Имя пользователя должно содержать не менее 3 символов';
+			newErrors.username = 'Username must be at least 3 characters';
 		}
 
 		if (!form.email) {
-			newErrors.email = 'Email обязателен';
+			newErrors.email = 'Email is required';
 		} else if (!validateEmail(form.email)) {
-			newErrors.email = 'Введите корректный email';
+			newErrors.email = 'Enter a valid email';
 		}
 
 		if (!form.password) {
-			newErrors.password = 'Пароль обязателен';
+			newErrors.password = 'Password is required';
 		} else if (form.password.length < 8) {
-			newErrors.password = 'Пароль должен содержать не менее 8 символов';
+			newErrors.password = 'Password must be at least 8 characters';
 		} else if (!hasUpperCase(form.password) || !hasLowerCase(form.password) ||
 			!hasNumber(form.password) || !hasSpecialChar(form.password)) {
-			newErrors.password = 'Пароль должен содержать заглавные и строчные буквы, цифры и специальные символы';
+			newErrors.password = 'Password must contain uppercase and lowercase letters, numbers, and special characters';
 		}
 
 		if (!form.confirmPassword) {
-			newErrors.confirmPassword = 'Подтверждение пароля обязательно';
+			newErrors.confirmPassword = 'Password confirmation is required';
 		} else if (form.password !== form.confirmPassword) {
-			newErrors.confirmPassword = 'Пароли не совпадают';
+			newErrors.confirmPassword = 'Passwords do not match';
 		}
 
 		if (!form.terms) {
-			showNotification('Необходимо принять условия использования', 'error');
+			showNotification('You must accept the terms of use', 'error');
 			return false;
 		}
 
@@ -92,7 +92,7 @@ export default function SignUp() {
 			const data = await response.json();
 
 			if (response.ok) {
-				showNotification(data.message || 'Регистрация успешна!', 'success');
+				showNotification(data.message || 'Registration successful!', 'success');
 				setForm({
 					username: '',
 					email: '',
@@ -102,11 +102,11 @@ export default function SignUp() {
 				});
 				setErrors({});
 			} else {
-				showNotification(data.error || 'Произошла ошибка', 'error');
+				showNotification(data.error || 'An error occurred', 'error');
 			}
 		} catch (error) {
 			console.error('Register error:', error);
-			showNotification('Произошла ошибка при отправке формы', 'error');
+			showNotification('An error occurred while submitting the form', 'error');
 		} finally {
 			setIsLoading(false);
 		}
@@ -213,7 +213,7 @@ export default function SignUp() {
 							disabled={isLoading}
 							className="w-full"
 						>
-							{isLoading ? 'Регистрация...' : 'Sign Up'}
+							{isLoading ? 'Registering...' : 'Sign Up'}
 						</Button>
 					</form>
 				</CardContent>

@@ -34,9 +34,9 @@ export function DeleteClientModal({
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle>Удалить клиента</DialogTitle>
+                    <DialogTitle>Delete Client</DialogTitle>
                     <DialogDescription>
-                        Вы уверены, что хотите удалить клиента "{client?.name}"? Это действие нельзя отменить.
+                        Are you sure you want to delete client "{client?.name}"? This action cannot be undone.
                     </DialogDescription>
                 </DialogHeader>
                 <DialogFooter>
@@ -45,7 +45,7 @@ export function DeleteClientModal({
                         variant="outline"
                         onClick={onClose}
                     >
-                        Отмена
+                        Cancel
                     </Button>
                     <Button
                         type="button"
@@ -53,7 +53,7 @@ export function DeleteClientModal({
                         onClick={handleConfirm}
                         disabled={loading}
                     >
-                        {loading ? 'Удаление...' : 'Удалить'}
+                        {loading ? 'Deleting...' : 'Delete'}
                     </Button>
                 </DialogFooter>
             </DialogContent>

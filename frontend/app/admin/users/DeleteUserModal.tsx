@@ -34,9 +34,9 @@ export function DeleteUserModal({
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle>Удалить пользователя</DialogTitle>
+                    <DialogTitle>Delete User</DialogTitle>
                     <DialogDescription>
-                        Вы уверены, что хотите удалить пользователя "{user?.username}"? Это действие нельзя отменить.
+                        Are you sure you want to delete user "{user?.username}"? This action cannot be undone.
                     </DialogDescription>
                 </DialogHeader>
                 <DialogFooter>
@@ -45,7 +45,7 @@ export function DeleteUserModal({
                         variant="outline"
                         onClick={onClose}
                     >
-                        Отмена
+                        Cancel
                     </Button>
                     <Button
                         type="button"
@@ -53,7 +53,7 @@ export function DeleteUserModal({
                         onClick={handleConfirm}
                         disabled={loading}
                     >
-                        {loading ? 'Удаление...' : 'Удалить'}
+                        {loading ? 'Deleting...' : 'Delete'}
                     </Button>
                 </DialogFooter>
             </DialogContent>

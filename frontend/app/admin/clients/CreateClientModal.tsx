@@ -79,16 +79,16 @@ export function CreateClientModal({
         <Dialog open={isOpen} onOpenChange={handleClose}>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle>Создать OAuth клиента</DialogTitle>
+                    <DialogTitle>Create OAuth Client</DialogTitle>
                     <DialogDescription>
-                        Заполните информацию о новом OAuth клиенте
+                        Fill in the information for the new OAuth client
                     </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleSubmit}>
                     <div className="grid gap-4 py-4">
                         <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="client-name" className="text-right">
-                                Имя клиента
+                                Client Name
                             </Label>
                             <Input
                                 id="client-name"
@@ -100,7 +100,7 @@ export function CreateClientModal({
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="client-username" className="text-right">
-                                Имя пользователя
+                                Username
                             </Label>
                             <Input
                                 id="client-username"
@@ -125,7 +125,7 @@ export function CreateClientModal({
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="client-password" className="text-right">
-                                Пароль
+                                Password
                             </Label>
                             <Input
                                 id="client-password"
@@ -157,10 +157,10 @@ export function CreateClientModal({
                             variant="outline"
                             onClick={handleClose}
                         >
-                            Отмена
+                            Cancel
                         </Button>
                         <Button type="submit" disabled={loading}>
-                            {loading ? 'Создание...' : 'Создать'}
+                            {loading ? 'Creating...' : 'Create'}
                         </Button>
                     </DialogFooter>
                 </form>

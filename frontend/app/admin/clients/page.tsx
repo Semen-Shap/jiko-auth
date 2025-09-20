@@ -59,13 +59,13 @@ export default function Clients() {
     }) => {
         const result = await createClient(clientData);
         if (result) {
-            showNotification('Клиент создан успешно', 'success');
-            alert(`Клиент создан!\nID: ${result.id}\nSecret: ${result.secret}\n\nСОХРАНИТЕ SECRET - он больше не будет показан!`);
+            showNotification('Client created successfully', 'success');
+            alert(`Client created!\nID: ${result.id}\nSecret: ${result.secret}\n\nSAVE THE SECRET - it will not be shown again!`);
             setShowCreateModal(false);
             loadClients();
             return true;
         } else {
-            showNotification('Ошибка при создании клиента', 'error');
+            showNotification('Error creating client', 'error');
             return false;
         }
     };
@@ -75,10 +75,10 @@ export default function Clients() {
 
         const success = await deleteClient(clientToDelete.id);
         if (success) {
-            showNotification('Клиент удален успешно', 'success');
+            showNotification('Client deleted successfully', 'success');
             loadClients();
         } else {
-            showNotification('Ошибка при удалении клиента', 'error');
+            showNotification('Error deleting client', 'error');
         }
     };
 
@@ -89,7 +89,7 @@ export default function Clients() {
 
     const formatDate = (dateString: string) => {
         const date = new Date(dateString);
-        return date.toLocaleDateString('ru-RU') + ' ' + date.toLocaleTimeString('ru-RU', {
+        return date.toLocaleDateString('en-US') + ' ' + date.toLocaleTimeString('en-US', {
             hour: '2-digit',
             minute: '2-digit'
         });
@@ -98,11 +98,11 @@ export default function Clients() {
     return (
         <div>
             <div className="flex justify-between items-center mb-8">
-                <h2 className="text-2xl font-medium text-white">OAuth Клиенты</h2>
+                <h2 className="text-2xl font-medium text-white">OAuth Clients</h2>
                 <Button
                     onClick={() => setShowCreateModal(true)}
                 >
-                    + Создать клиента
+                    + Create Client
                 </Button>
             </div>
 
@@ -111,12 +111,12 @@ export default function Clients() {
                     <TableHeader>
                         <TableRow>
                             <TableHead>ID</TableHead>
-                            <TableHead>Имя</TableHead>
-                            <TableHead>Пользователь</TableHead>
+                            <TableHead>Name</TableHead>
+                            <TableHead>User</TableHead>
                             <TableHead>Email</TableHead>
                             <TableHead>Redirect URIs</TableHead>
-                            <TableHead>Создан</TableHead>
-                            <TableHead>Действия</TableHead>
+                            <TableHead>Created</TableHead>
+                            <TableHead>Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -138,7 +138,7 @@ export default function Clients() {
                                         size="sm"
                                         onClick={() => openDeleteDialog(client)}
                                     >
-                                        Удалить
+                                        Delete
                                     </Button>
                                 </TableCell>
                             </TableRow>
@@ -157,7 +157,6 @@ export default function Clients() {
                                 className={currentPage === 1 || loading ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
                             >
                                 <ChevronLeftIcon className="h-4 w-4" />
-                                Предыдущая
                             </PaginationPrevious>
                         </PaginationItem>
                         {Array.from({ length: Math.ceil(totalClients / clientsPerPage) }, (_, i) => i + 1).map((page) => (
@@ -176,7 +175,6 @@ export default function Clients() {
                                 onClick={() => loadClients(currentPage + 1)}
                                 className={currentPage === Math.ceil(totalClients / clientsPerPage) || loading ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
                             >
-                                Следующая
                                 <ChevronRightIcon className="h-4 w-4" />
                             </PaginationNext>
                         </PaginationItem>

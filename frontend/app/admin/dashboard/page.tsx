@@ -17,7 +17,7 @@ export default function Dashboard() {
     }, [token, loadStats]);
 
     if (loading) {
-        return <div className="text-center py-8">Загрузка...</div>;
+        return <div className="text-center py-8">Loading...</div>;
     }
 
     return (
@@ -25,7 +25,7 @@ export default function Dashboard() {
             <div className="flex justify-between items-center mb-8">
                 <h2 className="text-2xl font-medium">Dashboard</h2>
                 <div className="text-sm text-muted-foreground">
-                    {new Date().toLocaleDateString('ru-RU')}
+                    {new Date().toLocaleDateString('en-US')}
                 </div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">

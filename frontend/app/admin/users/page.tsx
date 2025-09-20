@@ -25,6 +25,7 @@ import {
     PaginationPrevious,
 } from '@/components/ui/pagination';
 import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 export default function Users() {
     const { token } = useAdminAuth();
@@ -62,12 +63,12 @@ export default function Users() {
     }) => {
         const success = await createUser(userData);
         if (success) {
-            showNotification('Пользователь создан успешно', 'success');
+            showNotification('User created successfully', 'success');
             setShowCreateModal(false);
             loadUsers();
             return true;
         } else {
-            showNotification('Ошибка при создании пользователя', 'error');
+            showNotification('Error creating user', 'error');
             return false;
         }
     };
@@ -83,13 +84,13 @@ export default function Users() {
 
         const success = await updateUser(editingUser.id, userData);
         if (success) {
-            showNotification('Пользователь обновлен успешно', 'success');
+            showNotification('User updated successfully', 'success');
             setShowEditModal(false);
             setEditingUser(null);
             loadUsers();
             return true;
         } else {
-            showNotification('Ошибка при обновлении пользователя', 'error');
+            showNotification('Error updating user', 'error');
             return false;
         }
     };
@@ -99,10 +100,10 @@ export default function Users() {
 
         const success = await deleteUser(userToDelete.id);
         if (success) {
-            showNotification('Пользователь удален успешно', 'success');
+            showNotification('User deleted successfully', 'success');
             loadUsers();
         } else {
-            showNotification('Ошибка при удалении пользователя', 'error');
+            showNotification('Error deleting user', 'error');
         }
     };
 
@@ -118,7 +119,7 @@ export default function Users() {
 
     const formatDate = (dateString: string) => {
         const date = new Date(dateString);
-        return date.toLocaleDateString('ru-RU') + ' ' + date.toLocaleTimeString('ru-RU', {
+        return date.toLocaleDateString('en-US') + ' ' + date.toLocaleTimeString('en-US', {
             hour: '2-digit',
             minute: '2-digit'
         });
@@ -129,25 +130,25 @@ export default function Users() {
     return (
         <div>
             <div className="flex justify-between items-center mb-8">
-                <h2 className="text-2xl font-medium text-white">Пользователи</h2>
+                <h2 className="text-2xl font-medium text-white">Users</h2>
                 <Button
                     onClick={() => setShowCreateModal(true)}
                 >
-                    + Создать пользователя
+                    + Create User
                 </Button>
             </div>
 
-            <div className="rounded-md border">
+            <ScrollArea className="w-full h-full rounded-md border">
                 <Table>
                     <TableHeader>
                         <TableRow>
                             <TableHead>ID</TableHead>
-                            <TableHead>Имя</TableHead>
+                            <TableHead>Name</TableHead>
                             <TableHead>Email</TableHead>
-                            <TableHead>Роль</TableHead>
-                            <TableHead>Верификация</TableHead>
-                            <TableHead>Создан</TableHead>
-                            <TableHead>Действия</TableHead>
+                            <TableHead>Role</TableHead>
+                            <TableHead>Verification</TableHead>
+                            <TableHead>Created</TableHead>
+                            <TableHead>Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -165,7 +166,7 @@ export default function Users() {
                                 <TableCell>
                                     <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${user.email_verified ? 'bg-green-600 text-white' : 'bg-red-600 text-white'
                                         }`}>
-                                        {user.email_verified ? 'Да' : 'Нет'}
+                                        {user.email_verified ? 'Yes' : 'No'}
                                     </span>
                                 </TableCell>
                                 <TableCell>{formatDate(user.created_at)}</TableCell>
@@ -175,7 +176,7 @@ export default function Users() {
                                         size="sm"
                                         onClick={() => openEditModal(user)}
                                     >
-                                        Изменить
+                                        Edit
                                     </Button>
                                     <Button
                                         variant="ghost"
@@ -183,14 +184,14 @@ export default function Users() {
                                         onClick={() => openDeleteDialog(user)}
                                         disabled={user.role === 'admin'}
                                     >
-                                        Удалить
+                                        Delete
                                     </Button>
                                 </TableCell>
                             </TableRow>
                         ))}
                     </TableBody>
                 </Table>
-            </div>
+            </ScrollArea>
 
             {/* Pagination */}
             {totalPages > 1 && (
@@ -202,7 +203,6 @@ export default function Users() {
                                 className={currentPage === 1 || loading ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
                             >
                                 <ChevronLeftIcon className="h-4 w-4" />
-                                Предыдущая
                             </PaginationPrevious>
                         </PaginationItem>
                         {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
@@ -221,7 +221,6 @@ export default function Users() {
                                 onClick={() => loadUsers(currentPage + 1)}
                                 className={currentPage === totalPages || loading ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
                             >
-                                Следующая
                                 <ChevronRightIcon className="h-4 w-4" />
                             </PaginationNext>
                         </PaginationItem>
