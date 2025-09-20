@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useStats } from '../hooks/useAdmin';
-import { useAdminAuth } from '../hooks/useAdmin';
+import { useStats } from '../../../lib/hooks/useAdmin';
+import { useAdminAuth } from '../../../lib/hooks/useAdmin';
 
 export default function Dashboard() {
     const { token } = useAdminAuth();

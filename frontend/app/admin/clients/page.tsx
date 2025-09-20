@@ -1,11 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useClients, Client } from '../hooks/useAdmin';
-import { useAdminAuth } from '../hooks/useAdmin';
-import { useNotification } from '../components/Notification';
-import { Modal } from '../components/Modal';
-import { ConfirmDialog } from '../components/Modal';
+import { useClients, Client } from '../../../lib/hooks/useAdmin';
+import { useAdminAuth } from '../../../lib/hooks/useAdmin';
+import { useNotification } from '../../../components/Notification';
+import { Modal } from '../../../components/Modal';
+import { ConfirmDialog } from '../../../components/Modal';
 
 export default function Clients() {
     const { token } = useAdminAuth();

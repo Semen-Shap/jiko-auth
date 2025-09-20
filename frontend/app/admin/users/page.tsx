@@ -1,11 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useUsers, User } from '../hooks/useAdmin';
-import { useAdminAuth } from '../hooks/useAdmin';
-import { useNotification } from '../components/Notification';
-import { Modal } from '../components/Modal';
-import { ConfirmDialog } from '../components/Modal';
+import { useUsers, User } from '../../../lib/hooks/useAdmin';
+import { useAdminAuth } from '../../../lib/hooks/useAdmin';
+import { useNotification } from '../../../components/Notification';
+import { Modal } from '../../../components/Modal';
+import { ConfirmDialog } from '../../../components/Modal';
 
 export default function Users() {
     const { token } = useAdminAuth();
@@ -213,8 +213,8 @@ export default function Users() {
                             onClick={() => loadUsers(page)}
                             disabled={loading}
                             className={`px-3 py-1 border rounded ${page === currentPage
-                                    ? 'bg-cyan-500 text-white border-cyan-500'
-                                    : 'border-gray-300 hover:bg-gray-50'
+                                ? 'bg-cyan-500 text-white border-cyan-500'
+                                : 'border-gray-300 hover:bg-gray-50'
                                 }`}
                         >
                             {page}
