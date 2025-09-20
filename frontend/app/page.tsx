@@ -1,63 +1,47 @@
-"use client";
-
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/lib/hooks/useAuth';
-import { useEffect, useState } from 'react';
 
-export default function Home() {
-  const { user, isAuthenticated, isLoading, logout, isAdmin } = useAuth();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (mounted && !isLoading && !isAuthenticated) {
-      window.location.href = '/welcome';
-    }
-  }, [mounted, isLoading, isAuthenticated]);
-
-  if (!mounted || isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div>Loading...</div>
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) {
-    return null; // Will redirect in useEffect
-  }
-
+export default function Welcome() {
   return (
-    <div className="min-h-screen flex items-center justify-center px-5">
+    <div className="h-full min-w-[512px] flex items-center justify-center">
+      <div className="absolute top-4 right-4 flex gap-2">
+        <Link href="/sign-in">
+          <Button variant="outline" size="sm">
+            Sign In
+          </Button>
+        </Link>
+        <Link href="/sign-up">
+          <Button variant="outline" size="sm">
+            Sign Up
+          </Button>
+        </Link>
+      </div>
+
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold">
-            Welcome back, {user?.username}!
+            JIKO
           </CardTitle>
           <CardDescription>
-            You are successfully logged in to JIKO
+            Welcome to JIKO Authentication System
           </CardDescription>
         </CardHeader>
         <CardContent className="text-center">
           <p className="mb-6">
-            Welcome to the JIKO ecosystem. You can now access all features.
+            Choose an option to get started
           </p>
           <div className="space-y-3">
-            {isAdmin && (
-              <Link href="/admin" className="block">
-                <Button className="w-full">
-                  Go to Admin Panel
-                </Button>
-              </Link>
-            )}
-            <Button variant="outline" className="w-full" onClick={logout}>
-              Logout
-            </Button>
+            <Link href="/sign-in" className="block">
+              <Button className="w-full">
+                Sign In
+              </Button>
+            </Link>
+            <Link href="/sign-up" className="block">
+              <Button variant="outline" className="w-full">
+                Sign Up
+              </Button>
+            </Link>
           </div>
         </CardContent>
       </Card>

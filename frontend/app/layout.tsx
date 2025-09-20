@@ -33,8 +33,7 @@ export default function RootLayout({
           defaultTheme="system"
           storageKey="jiko-ui-theme"
         >
-          <Header />
-          <main>
+          <main className="min-h-screen flex-1 flex flex-col items-center justify-center">
             {children}
           </main>
         </ThemeProvider>

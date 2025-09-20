@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useClients, Client } from '../../../lib/hooks/useAdmin';
-import { useAdminAuth } from '../../../lib/hooks/useAdmin';
-import { useNotification } from '../../../components/Notification';
+import { useClients, Client } from '@/lib/hooks/useAdmin';
+import { useAdminAuth } from '@/lib/hooks/useAdmin';
+import { useNotification } from '@/components/Notification';
 import { CreateClientModal } from './CreateClientModal';
 import { DeleteClientModal } from './DeleteClientModal';
 import { Button } from '@/components/ui/button';
@@ -24,6 +24,7 @@ import {
     PaginationPrevious,
 } from '@/components/ui/pagination';
 import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
 export default function Clients() {
     const { token } = useAdminAuth();
@@ -103,14 +104,13 @@ export default function Clients() {
                 </Button>
             </div>
 
-            <div className="rounded-md border">
+            <ScrollArea className="rounded-md border">
                 <Table>
                     <TableHeader>
                         <TableRow>
                             <TableHead>ID</TableHead>
                             <TableHead>Name</TableHead>
                             <TableHead>User</TableHead>
-                            <TableHead>Email</TableHead>
                             <TableHead>Redirect URIs</TableHead>
                             <TableHead>Created</TableHead>
                             <TableHead>Actions</TableHead>
@@ -122,7 +122,6 @@ export default function Clients() {
                                 <TableCell>{client.id}</TableCell>
                                 <TableCell>{client.name}</TableCell>
                                 <TableCell>{client.username}</TableCell>
-                                <TableCell>{client.email}</TableCell>
                                 <TableCell>
                                     {client.redirect_uris.map((uri, index) => (
                                         <div key={index}>{uri}</div>
@@ -142,7 +141,8 @@ export default function Clients() {
                         ))}
                     </TableBody>
                 </Table>
-            </div>
+                <ScrollBar orientation="horizontal" />
+            </ScrollArea>
 
             {/* Pagination */}
             {Math.ceil(totalClients / clientsPerPage) > 1 && (

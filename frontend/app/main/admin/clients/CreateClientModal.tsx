@@ -84,13 +84,6 @@ export function CreateClientModal({
                 </DialogHeader>
                 <form onSubmit={handleSubmit}>
                     <div className="grid gap-4 py-4">
-                        {user && (
-                            <div className="bg-muted p-3 rounded-md">
-                                <p className="text-sm text-muted-foreground mb-1">Client will be created for:</p>
-                                <p className="text-sm font-medium">{user.username}</p>
-                                {user.email && <p className="text-sm text-muted-foreground">{user.email}</p>}
-                            </div>
-                        )}
                         <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="client-name" className="text-right">
                                 Client Name

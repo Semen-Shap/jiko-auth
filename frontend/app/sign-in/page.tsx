@@ -84,7 +84,7 @@ export default function SignIn() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center px-5">
+        <div className="h-full min-w-[512px] flex items-center justify-center">
             <div className="absolute top-4 right-4 flex gap-2">
                 <Link href="/sign-up">
                     <Button variant="outline" size="sm">
