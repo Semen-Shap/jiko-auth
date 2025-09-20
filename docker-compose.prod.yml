@@ -1,6 +1,7 @@
 services:
   postgres:
     image: postgres:15-alpine
+    restart: always
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
@@ -15,6 +16,7 @@ services:
 
   backend:
     build: ./backend
+    restart: always
     ports:
       - "8085:8080"
     depends_on:
