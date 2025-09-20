@@ -263,7 +263,7 @@ export default function Users() {
 				user={userToDelete}
 				loading={loading}
 			/>
-
+			
 			{NotificationComponent}
 		</div>
 	);

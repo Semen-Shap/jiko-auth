@@ -37,7 +37,7 @@ export default function AdminSidebar() {
                 </div>
             </SidebarHeader>
             <SidebarContent>
-                <SidebarMenu>
+                <SidebarMenu className='px-1'>
                     {navigation.map((item) => (
                         <SidebarMenuItem key={item.name}>
                             <SidebarMenuButton
