@@ -17,18 +17,12 @@ type EmailService struct {
 	smtpPassword string
 	fromEmail    string
 	baseURL      string
-	frontendURL  string
 }
 
 func NewEmailService() *EmailService {
 	baseURL := os.Getenv("APP_URL")
 	if baseURL == "" {
 		baseURL = "http://localhost:8080"
-	}
-
-	frontendURL := os.Getenv("FRONTEND_URL")
-	if frontendURL == "" {
-		frontendURL = "http://localhost:3000"
 	}
 
 	return &EmailService{
@@ -38,7 +32,6 @@ func NewEmailService() *EmailService {
 		smtpPassword: os.Getenv("SMTP_PASSWORD"),
 		fromEmail:    os.Getenv("SMTP_FROM_EMAIL"),
 		baseURL:      baseURL,
-		frontendURL:  frontendURL,
 	}
 }
 
@@ -50,11 +43,9 @@ func (s *EmailService) SendVerificationEmail(to, token string) error {
 		return fmt.Errorf("SMTP не настроен")
 	}
 
-	// Используем фронтенд URL для прямой ссылки на страницу верификации
 	verificationLink := fmt.Sprintf("%s/verify-email?token=%s",
-		s.frontendURL, token)
+		s.baseURL, token)
 
-	// HTML email template with clickable link
 	htmlBody := fmt.Sprintf(`
         <!DOCTYPE html>
         <html>
