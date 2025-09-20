@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import AdminHeader from '../../components/AdminHeader';
 import { BarChart3, Users, Link as LinkIcon } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
 interface AdminLayoutProps {
     children: React.ReactNode;
@@ -46,26 +48,31 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
             <div className="flex min-h-[calc(100vh-64px)]">
                 {/* Sidebar */}
-                <div className="w-64 bg-gray-800 border-r border-gray-700 p-6">
-                    <nav>
-                        <ul className="space-y-2">
-                            {navigation.map((item) => (
-                                <li key={item.name}>
-                                    <Link
-                                        href={item.href}
-                                        className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${pathname === item.href
-                                            ? 'bg-blue-600 text-white'
-                                            : 'text-gray-300 hover:bg-gray-700'
-                                            }`}
-                                    >
-                                        <item.icon className="w-4 h-4" />
-                                        <span className="text-sm">{item.name}</span>
-                                    </Link>
-                                </li>
-                            ))}
-                        </ul>
-                    </nav>
-                </div>
+                <Card className="w-64 bg-gray-800 border-r border-gray-700 rounded-none">
+                    <CardContent className="p-6">
+                        <nav>
+                            <ul className="space-y-2">
+                                {navigation.map((item) => (
+                                    <li key={item.name}>
+                                        <Button
+                                            asChild
+                                            variant={pathname === item.href ? "default" : "ghost"}
+                                            className={`w-full justify-start gap-3 ${pathname === item.href
+                                                ? 'bg-blue-600 text-white hover:bg-blue-700'
+                                                : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                                                }`}
+                                        >
+                                            <Link href={item.href}>
+                                                <item.icon className="w-4 h-4" />
+                                                <span className="text-sm">{item.name}</span>
+                                            </Link>
+                                        </Button>
+                                    </li>
+                                ))}
+                            </ul>
+                        </nav>
+                    </CardContent>
+                </Card>
 
                 {/* Main Content */}
                 <div className="flex-1 p-6 bg-gray-900 overflow-y-auto">

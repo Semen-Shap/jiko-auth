@@ -53,6 +53,7 @@ func main() {
 		Handler: router,
 	}
 
+	
 	log.Printf("Server starting on port %s", cfg.ServerPort)
 	if err := server.ListenAndServe(); err != nil {
 		log.Fatal("Server failed to start:", err)

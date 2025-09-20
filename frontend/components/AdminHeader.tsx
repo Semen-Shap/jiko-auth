@@ -1,6 +1,7 @@
 'use client';
 
 import { Shield } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface AdminHeaderProps {
     onLogout: () => void;
@@ -16,12 +17,14 @@ export default function AdminHeader({ onLogout }: AdminHeaderProps) {
                 </div>
                 <div className="flex items-center gap-4">
                     <span className="text-sm text-gray-400">Admin</span>
-                    <button
+                    <Button
+                        variant="destructive"
+                        size="sm"
                         onClick={onLogout}
-                        className="px-3 py-1.5 text-sm bg-red-600 hover:bg-red-700 rounded transition-colors"
+                        className="px-3 py-1.5 text-sm"
                     >
                         Выйти
-                    </button>
+                    </Button>
                 </div>
             </div>
         </div>

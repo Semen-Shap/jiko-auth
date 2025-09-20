@@ -21,35 +21,6 @@ func SetupRouter(
 	// Добавляем CORS middleware
 	router.Use(middleware.CORSMiddleware())
 
-	// Загружаем HTML шаблоны
-	router.LoadHTMLGlob("./static/html/*")
-
-	// Статические файлы
-	router.Static("/static", "./static") // HTML страницы
-	router.GET("/", func(c *gin.Context) {
-		c.HTML(200, "base.html", gin.H{
-			"Title": "Вход и регистрация",
-		})
-	})
-
-	router.GET("/login", func(c *gin.Context) {
-		c.HTML(200, "base.html", gin.H{
-			"Title": "Вход",
-		})
-	})
-
-	router.GET("/register", func(c *gin.Context) {
-		c.HTML(200, "base.html", gin.H{
-			"Title": "Регистрация",
-		})
-	})
-
-	router.GET("/admin", func(c *gin.Context) {
-		c.HTML(200, "admin.html", gin.H{
-			"Title": "Admin Panel",
-		})
-	})
-
 	router.GET("/verify-email", func(c *gin.Context) {
 		token := c.Query("token")
 		success := c.Query("success")

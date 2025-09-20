@@ -182,29 +182,35 @@ export function useUsers(token: string | null) {
 
 export function useClients(token: string | null) {
     const [clients, setClients] = useState<Client[]>([]);
+    const [totalClients, setTotalClients] = useState(0);
+    const [currentPage, setCurrentPage] = useState(1);
     const [loading, setLoading] = useState(false);
+    const clientsPerPage = 20;
 
-    const loadClients = useCallback(async () => {
+    const loadClients = useCallback(async (page = 1) => {
         if (!token) return;
 
         setLoading(true);
         try {
-            const response = await fetch('/api/v1/admin/clients', {
+            const offset = (page - 1) * clientsPerPage;
+            const response = await fetch(`/api/v1/admin/clients?limit=${clientsPerPage}&offset=${offset}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
             });
 
             if (response.ok) {
-                const clientsData = await response.json();
-                setClients(clientsData);
+                const data = await response.json();
+                setClients(data.clients || data);
+                setTotalClients(data.count || data.length);
+                setCurrentPage(page);
             }
         } catch (error) {
             console.error('Error loading clients:', error);
         } finally {
             setLoading(false);
         }
-    }, [token]);
+    }, [token, clientsPerPage]);
 
     const createClient = useCallback(async (clientData: any) => {
         if (!token) return;
@@ -246,7 +252,10 @@ export function useClients(token: string | null) {
 
     return {
         clients,
+        totalClients,
+        currentPage,
         loading,
+        clientsPerPage,
         loadClients,
         createClient,
         deleteClient

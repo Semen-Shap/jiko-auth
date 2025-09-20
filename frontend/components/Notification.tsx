@@ -1,6 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { X } from 'lucide-react';
 
 interface NotificationProps {
     message: string;
@@ -18,17 +21,20 @@ export function Notification({ message, type, onClose }: NotificationProps) {
     }, [onClose]);
 
     return (
-        <div
-            className={`fixed top-5 right-5 p-4 rounded-lg text-white shadow-lg transform transition-all duration-300 z-50 ${type === 'success' ? 'bg-green-500' : 'bg-red-500'
-                }`}
-        >
-            <span>{message}</span>
-            <button
-                onClick={onClose}
-                className="ml-4 text-white hover:text-gray-200"
-            >
-                ×
-            </button>
+        <div className="fixed bottom-5 right-5 z-50">
+            <Alert variant={type === 'error' ? 'destructive' : 'default'} className="relative">
+                <AlertDescription className="flex items-center justify-between">
+                    <span>{message}</span>
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={onClose}
+                        className="ml-4 h-auto p-0 hover:bg-transparent"
+                    >
+                        <X className="h-4 w-4" />
+                    </Button>
+                </AlertDescription>
+            </Alert>
         </div>
     );
 }

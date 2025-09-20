@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { Button } from '@/components/ui/button';
 
 interface ModalProps {
     isOpen: boolean;
@@ -35,12 +36,14 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
             <div className="bg-gray-800 mx-auto mt-20 p-0 rounded-lg w-11/12 max-w-md border border-gray-700">
                 <div className="p-6 pb-4 flex justify-between items-center border-b border-gray-600">
                     <h3 className="m-0 text-white font-medium">{title}</h3>
-                    <button
+                    <Button
+                        variant="ghost"
+                        size="sm"
                         onClick={onClose}
-                        className="text-xl font-bold cursor-pointer text-gray-400 transition-colors hover:text-white"
+                        className="text-xl font-bold cursor-pointer text-gray-400 transition-colors hover:text-white h-auto p-0"
                     >
                         &times;
-                    </button>
+                    </Button>
                 </div>
                 {children}
             </div>
@@ -77,18 +80,20 @@ export function ConfirmDialog({
             <div className="p-6">
                 <p className="text-gray-300 mb-6">{message}</p>
                 <div className="flex justify-end gap-3">
-                    <button
+                    <Button
+                        variant="ghost"
                         onClick={onClose}
                         className="px-4 py-2 text-gray-300 hover:text-white"
                     >
                         {cancelText}
-                    </button>
-                    <button
+                    </Button>
+                    <Button
+                        variant="destructive"
                         onClick={handleConfirm}
                         className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
                     >
                         {confirmText}
-                    </button>
+                    </Button>
                 </div>
             </div>
         </Modal>
