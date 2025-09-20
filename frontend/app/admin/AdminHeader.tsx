@@ -9,8 +9,8 @@ interface AdminHeaderProps {
 
 export default function AdminHeader({ onLogout }: AdminHeaderProps) {
     return (
-        <div className="p-4 border-b">
-            <div className="flex justify-between items-center max-w-7xl mx-auto">
+        <div className="h-16 p-4 border-b">
+            <div className="flex justify-between items-center max-w-7xl mx-auto h-full">
                 <div className="flex items-center gap-3">
                     <h1 className="text-lg font-medium">Admin Panel</h1>
                 </div>
