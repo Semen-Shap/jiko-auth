@@ -94,48 +94,48 @@ export default function Clients() {
     return (
         <div>
             <div className="flex justify-between items-center mb-8">
-                <h2 className="text-2xl font-bold text-gray-800">OAuth Клиенты</h2>
+                <h2 className="text-2xl font-medium text-white">OAuth Клиенты</h2>
                 <button
                     onClick={() => setShowCreateModal(true)}
-                    className="px-4 py-2 bg-cyan-500 text-white rounded-lg hover:bg-cyan-600 transition-colors"
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
                 >
                     + Создать клиента
                 </button>
             </div>
 
-            <div className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 mb-6">
+            <div className="bg-gray-800 rounded-lg overflow-hidden border border-gray-700 mb-6">
                 <div className="overflow-x-auto">
                     <table className="w-full">
-                        <thead className="bg-gray-50">
+                        <thead className="bg-gray-700">
                             <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Имя</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Пользователь</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Redirect URIs</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Создан</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Действия</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">ID</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Имя</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Пользователь</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Email</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Redirect URIs</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Создан</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Действия</th>
                             </tr>
                         </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
+                        <tbody className="divide-y divide-gray-700">
                             {clients.map((client) => (
-                                <tr key={client.id}>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{client.id}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{client.name}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{client.username}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{client.email}</td>
-                                    <td className="px-6 py-4 text-sm text-gray-500">
+                                <tr key={client.id} className="hover:bg-gray-700">
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{client.id}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{client.name}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{client.username}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{client.email}</td>
+                                    <td className="px-6 py-4 text-sm text-gray-400">
                                         {client.redirect_uris.map((uri, index) => (
                                             <div key={index}>{uri}</div>
                                         ))}
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
                                         {formatDate(client.created_at)}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                         <button
                                             onClick={() => openDeleteDialog(client)}
-                                            className="text-red-600 hover:text-red-900"
+                                            className="text-red-400 hover:text-red-300"
                                         >
                                             Удалить
                                         </button>
@@ -154,8 +154,8 @@ export default function Clients() {
                 title="Создать OAuth клиента"
             >
                 <form onSubmit={handleCreateClient} className="p-6">
-                    <div className="mb-6">
-                        <label htmlFor="client-name" className="block mb-2 text-gray-600 font-medium">
+                    <div className="mb-4">
+                        <label htmlFor="client-name" className="block mb-2 text-gray-300 text-sm">
                             Имя клиента
                         </label>
                         <input
@@ -163,12 +163,12 @@ export default function Clients() {
                             id="client-name"
                             value={createForm.name}
                             onChange={(e) => setCreateForm(prev => ({ ...prev, name: e.target.value }))}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-cyan-400"
+                            className="w-full p-3 border border-gray-600 rounded-lg bg-gray-700 text-white focus:outline-none focus:border-blue-500"
                             required
                         />
                     </div>
-                    <div className="mb-6">
-                        <label htmlFor="client-username" className="block mb-2 text-gray-600 font-medium">
+                    <div className="mb-4">
+                        <label htmlFor="client-username" className="block mb-2 text-gray-300 text-sm">
                             Имя пользователя
                         </label>
                         <input
@@ -176,12 +176,12 @@ export default function Clients() {
                             id="client-username"
                             value={createForm.username}
                             onChange={(e) => setCreateForm(prev => ({ ...prev, username: e.target.value }))}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-cyan-400"
+                            className="w-full p-3 border border-gray-600 rounded-lg bg-gray-700 text-white focus:outline-none focus:border-blue-500"
                             required
                         />
                     </div>
-                    <div className="mb-6">
-                        <label htmlFor="client-email" className="block mb-2 text-gray-600 font-medium">
+                    <div className="mb-4">
+                        <label htmlFor="client-email" className="block mb-2 text-gray-300 text-sm">
                             Email
                         </label>
                         <input
@@ -189,12 +189,12 @@ export default function Clients() {
                             id="client-email"
                             value={createForm.email}
                             onChange={(e) => setCreateForm(prev => ({ ...prev, email: e.target.value }))}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-cyan-400"
+                            className="w-full p-3 border border-gray-600 rounded-lg bg-gray-700 text-white focus:outline-none focus:border-blue-500"
                             required
                         />
                     </div>
-                    <div className="mb-6">
-                        <label htmlFor="client-password" className="block mb-2 text-gray-600 font-medium">
+                    <div className="mb-4">
+                        <label htmlFor="client-password" className="block mb-2 text-gray-300 text-sm">
                             Пароль
                         </label>
                         <input
@@ -202,36 +202,36 @@ export default function Clients() {
                             id="client-password"
                             value={createForm.password}
                             onChange={(e) => setCreateForm(prev => ({ ...prev, password: e.target.value }))}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-cyan-400"
+                            className="w-full p-3 border border-gray-600 rounded-lg bg-gray-700 text-white focus:outline-none focus:border-blue-500"
                             required
                         />
                     </div>
-                    <div className="mb-6">
-                        <label htmlFor="redirect-uris" className="block mb-2 text-gray-600 font-medium">
+                    <div className="mb-4">
+                        <label htmlFor="redirect-uris" className="block mb-2 text-gray-300 text-sm">
                             Redirect URIs (по одному на строку)
                         </label>
                         <textarea
                             id="redirect-uris"
                             value={createForm.redirect_uris}
                             onChange={(e) => setCreateForm(prev => ({ ...prev, redirect_uris: e.target.value }))}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-cyan-400"
+                            className="w-full p-3 border border-gray-600 rounded-lg bg-gray-700 text-white focus:outline-none focus:border-blue-500"
                             rows={4}
                             placeholder="https://example.com/callback&#10;https://app.example.com/oauth/callback"
                             required
                         />
                     </div>
-                    <div className="p-4 pt-6 flex justify-end gap-4 border-t border-gray-100 mt-6">
+                    <div className="flex justify-end gap-3 pt-4 border-t border-gray-600">
                         <button
                             type="button"
                             onClick={() => setShowCreateModal(false)}
-                            className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                            className="px-4 py-2 text-gray-300 hover:text-white"
                         >
                             Отмена
                         </button>
                         <button
                             type="submit"
                             disabled={loading}
-                            className="px-4 py-2 bg-cyan-500 text-white rounded-lg hover:bg-cyan-600 disabled:opacity-50"
+                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
                         >
                             {loading ? 'Создание...' : 'Создать'}
                         </button>

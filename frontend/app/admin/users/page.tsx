@@ -131,61 +131,61 @@ export default function Users() {
     return (
         <div>
             <div className="flex justify-between items-center mb-8">
-                <h2 className="text-2xl font-bold text-gray-800">Пользователи</h2>
+                <h2 className="text-2xl font-medium text-white">Пользователи</h2>
                 <button
                     onClick={() => setShowCreateModal(true)}
-                    className="px-4 py-2 bg-cyan-500 text-white rounded-lg hover:bg-cyan-600 transition-colors"
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
                 >
                     + Создать пользователя
                 </button>
             </div>
 
-            <div className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 mb-6">
+            <div className="bg-gray-800 rounded-lg overflow-hidden border border-gray-700 mb-6">
                 <div className="overflow-x-auto">
                     <table className="w-full">
-                        <thead className="bg-gray-50">
+                        <thead className="bg-gray-700">
                             <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Имя</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Роль</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Верификация</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Создан</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Действия</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">ID</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Имя</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Email</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Роль</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Верификация</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Создан</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Действия</th>
                             </tr>
                         </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
+                        <tbody className="divide-y divide-gray-700">
                             {users.map((user) => (
-                                <tr key={user.id}>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{user.id}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{user.username}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{user.email}</td>
+                                <tr key={user.id} className="hover:bg-gray-700">
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{user.id}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{user.username}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{user.email}</td>
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${user.role === 'admin' ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-800'
+                                        <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${user.role === 'admin' ? 'bg-purple-600 text-white' : 'bg-gray-600 text-gray-300'
                                             }`}>
                                             {user.role}
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${user.email_verified ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                                        <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${user.email_verified ? 'bg-green-600 text-white' : 'bg-red-600 text-white'
                                             }`}>
                                             {user.email_verified ? 'Да' : 'Нет'}
                                         </span>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
                                         {formatDate(user.created_at)}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                         <button
                                             onClick={() => openEditModal(user)}
-                                            className="text-indigo-600 hover:text-indigo-900 mr-3"
+                                            className="text-blue-400 hover:text-blue-300 mr-3"
                                         >
                                             Изменить
                                         </button>
                                         <button
                                             onClick={() => openDeleteDialog(user)}
                                             disabled={user.role === 'admin'}
-                                            className="text-red-600 hover:text-red-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                                            className="text-red-400 hover:text-red-300 disabled:opacity-50 disabled:cursor-not-allowed"
                                         >
                                             Удалить
                                         </button>
@@ -203,7 +203,7 @@ export default function Users() {
                     <button
                         onClick={() => loadUsers(currentPage - 1)}
                         disabled={currentPage === 1 || loading}
-                        className="px-3 py-1 border border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-3 py-1 border border-gray-600 rounded text-gray-300 hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         ‹ Предыдущая
                     </button>
@@ -213,8 +213,8 @@ export default function Users() {
                             onClick={() => loadUsers(page)}
                             disabled={loading}
                             className={`px-3 py-1 border rounded ${page === currentPage
-                                ? 'bg-cyan-500 text-white border-cyan-500'
-                                : 'border-gray-300 hover:bg-gray-50'
+                                ? 'bg-blue-600 text-white border-blue-600'
+                                : 'border-gray-600 text-gray-300 hover:bg-gray-700'
                                 }`}
                         >
                             {page}
@@ -223,7 +223,7 @@ export default function Users() {
                     <button
                         onClick={() => loadUsers(currentPage + 1)}
                         disabled={currentPage === totalPages || loading}
-                        className="px-3 py-1 border border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-3 py-1 border border-gray-600 rounded text-gray-300 hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         Следующая ›
                     </button>
@@ -237,8 +237,8 @@ export default function Users() {
                 title="Создать пользователя"
             >
                 <form onSubmit={handleCreateUser} className="p-6">
-                    <div className="mb-6">
-                        <label htmlFor="create-username" className="block mb-2 text-gray-600 font-medium">
+                    <div className="mb-4">
+                        <label htmlFor="create-username" className="block mb-2 text-gray-300 text-sm">
                             Имя пользователя
                         </label>
                         <input
@@ -246,12 +246,12 @@ export default function Users() {
                             id="create-username"
                             value={createForm.username}
                             onChange={(e) => setCreateForm(prev => ({ ...prev, username: e.target.value }))}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-cyan-400"
+                            className="w-full p-3 border border-gray-600 rounded-lg bg-gray-700 text-white focus:outline-none focus:border-blue-500"
                             required
                         />
                     </div>
-                    <div className="mb-6">
-                        <label htmlFor="create-email" className="block mb-2 text-gray-600 font-medium">
+                    <div className="mb-4">
+                        <label htmlFor="create-email" className="block mb-2 text-gray-300 text-sm">
                             Email
                         </label>
                         <input
@@ -259,12 +259,12 @@ export default function Users() {
                             id="create-email"
                             value={createForm.email}
                             onChange={(e) => setCreateForm(prev => ({ ...prev, email: e.target.value }))}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-cyan-400"
+                            className="w-full p-3 border border-gray-600 rounded-lg bg-gray-700 text-white focus:outline-none focus:border-blue-500"
                             required
                         />
                     </div>
-                    <div className="mb-6">
-                        <label htmlFor="create-password" className="block mb-2 text-gray-600 font-medium">
+                    <div className="mb-4">
+                        <label htmlFor="create-password" className="block mb-2 text-gray-300 text-sm">
                             Пароль
                         </label>
                         <input
@@ -272,36 +272,36 @@ export default function Users() {
                             id="create-password"
                             value={createForm.password}
                             onChange={(e) => setCreateForm(prev => ({ ...prev, password: e.target.value }))}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-cyan-400"
+                            className="w-full p-3 border border-gray-600 rounded-lg bg-gray-700 text-white focus:outline-none focus:border-blue-500"
                             required
                         />
                     </div>
-                    <div className="mb-6">
-                        <label htmlFor="create-role" className="block mb-2 text-gray-600 font-medium">
+                    <div className="mb-4">
+                        <label htmlFor="create-role" className="block mb-2 text-gray-300 text-sm">
                             Роль
                         </label>
                         <select
                             id="create-role"
                             value={createForm.role}
                             onChange={(e) => setCreateForm(prev => ({ ...prev, role: e.target.value }))}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-cyan-400"
+                            className="w-full p-3 border border-gray-600 rounded-lg bg-gray-700 text-white focus:outline-none focus:border-blue-500"
                         >
                             <option value="user">Пользователь</option>
                             <option value="admin">Администратор</option>
                         </select>
                     </div>
-                    <div className="p-4 pt-6 flex justify-end gap-4 border-t border-gray-100 mt-6">
+                    <div className="flex justify-end gap-3 pt-4 border-t border-gray-600">
                         <button
                             type="button"
                             onClick={() => setShowCreateModal(false)}
-                            className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                            className="px-4 py-2 text-gray-300 hover:text-white"
                         >
                             Отмена
                         </button>
                         <button
                             type="submit"
                             disabled={loading}
-                            className="px-4 py-2 bg-cyan-500 text-white rounded-lg hover:bg-cyan-600 disabled:opacity-50"
+                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
                         >
                             {loading ? 'Создание...' : 'Создать'}
                         </button>
@@ -316,8 +316,8 @@ export default function Users() {
                 title="Редактировать пользователя"
             >
                 <form onSubmit={handleEditUser} className="p-6">
-                    <div className="mb-6">
-                        <label htmlFor="edit-username" className="block mb-2 text-gray-600 font-medium">
+                    <div className="mb-4">
+                        <label htmlFor="edit-username" className="block mb-2 text-gray-300 text-sm">
                             Имя пользователя
                         </label>
                         <input
@@ -325,12 +325,12 @@ export default function Users() {
                             id="edit-username"
                             value={editForm.username}
                             onChange={(e) => setEditForm(prev => ({ ...prev, username: e.target.value }))}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-cyan-400"
+                            className="w-full p-3 border border-gray-600 rounded-lg bg-gray-700 text-white focus:outline-none focus:border-blue-500"
                             required
                         />
                     </div>
-                    <div className="mb-6">
-                        <label htmlFor="edit-email" className="block mb-2 text-gray-600 font-medium">
+                    <div className="mb-4">
+                        <label htmlFor="edit-email" className="block mb-2 text-gray-300 text-sm">
                             Email
                         </label>
                         <input
@@ -338,12 +338,12 @@ export default function Users() {
                             id="edit-email"
                             value={editForm.email}
                             onChange={(e) => setEditForm(prev => ({ ...prev, email: e.target.value }))}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-cyan-400"
+                            className="w-full p-3 border border-gray-600 rounded-lg bg-gray-700 text-white focus:outline-none focus:border-blue-500"
                             required
                         />
                     </div>
-                    <div className="mb-6">
-                        <label htmlFor="edit-password" className="block mb-2 text-gray-600 font-medium">
+                    <div className="mb-4">
+                        <label htmlFor="edit-password" className="block mb-2 text-gray-300 text-sm">
                             Новый пароль (оставьте пустым, чтобы не менять)
                         </label>
                         <input
@@ -351,47 +351,47 @@ export default function Users() {
                             id="edit-password"
                             value={editForm.password}
                             onChange={(e) => setEditForm(prev => ({ ...prev, password: e.target.value }))}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-cyan-400"
+                            className="w-full p-3 border border-gray-600 rounded-lg bg-gray-700 text-white focus:outline-none focus:border-blue-500"
                         />
                     </div>
-                    <div className="mb-6">
-                        <label htmlFor="edit-role" className="block mb-2 text-gray-600 font-medium">
+                    <div className="mb-4">
+                        <label htmlFor="edit-role" className="block mb-2 text-gray-300 text-sm">
                             Роль
                         </label>
                         <select
                             id="edit-role"
                             value={editForm.role}
                             onChange={(e) => setEditForm(prev => ({ ...prev, role: e.target.value }))}
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-cyan-400"
+                            className="w-full p-3 border border-gray-600 rounded-lg bg-gray-700 text-white focus:outline-none focus:border-blue-500"
                         >
                             <option value="user">Пользователь</option>
                             <option value="admin">Администратор</option>
                         </select>
                     </div>
-                    <div className="mb-6">
+                    <div className="mb-4">
                         <label className="flex items-center cursor-pointer">
                             <input
                                 type="checkbox"
                                 id="edit-email-verified"
                                 checked={editForm.email_verified}
                                 onChange={(e) => setEditForm(prev => ({ ...prev, email_verified: e.target.checked }))}
-                                className="mr-3 w-4 h-4 text-cyan-400 border-gray-300 rounded focus:ring-cyan-400"
+                                className="mr-3 w-4 h-4 text-blue-600 border-gray-600 rounded bg-gray-700 focus:ring-blue-500"
                             />
-                            <span className="text-sm text-gray-600">Email подтвержден</span>
+                            <span className="text-sm text-gray-300">Email подтвержден</span>
                         </label>
                     </div>
-                    <div className="p-4 pt-6 flex justify-end gap-4 border-t border-gray-100 mt-6">
+                    <div className="flex justify-end gap-3 pt-4 border-t border-gray-600">
                         <button
                             type="button"
                             onClick={() => setShowEditModal(false)}
-                            className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                            className="px-4 py-2 text-gray-300 hover:text-white"
                         >
                             Отмена
                         </button>
                         <button
                             type="submit"
                             disabled={loading}
-                            className="px-4 py-2 bg-cyan-500 text-white rounded-lg hover:bg-cyan-600 disabled:opacity-50"
+                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
                         >
                             {loading ? 'Сохранение...' : 'Сохранить'}
                         </button>

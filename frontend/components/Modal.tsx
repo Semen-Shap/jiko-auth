@@ -31,13 +31,13 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center">
-            <div className="bg-white mx-auto mt-20 p-0 rounded-xl w-11/12 max-w-md shadow-2xl">
-                <div className="p-6 pb-4 flex justify-between items-center border-b border-gray-100">
-                    <h3 className="m-0 text-gray-800 font-bold">{title}</h3>
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center">
+            <div className="bg-gray-800 mx-auto mt-20 p-0 rounded-lg w-11/12 max-w-md border border-gray-700">
+                <div className="p-6 pb-4 flex justify-between items-center border-b border-gray-600">
+                    <h3 className="m-0 text-white font-medium">{title}</h3>
                     <button
                         onClick={onClose}
-                        className="text-xl font-bold cursor-pointer text-gray-400 transition-colors hover:text-gray-600"
+                        className="text-xl font-bold cursor-pointer text-gray-400 transition-colors hover:text-white"
                     >
                         &times;
                     </button>
@@ -75,17 +75,17 @@ export function ConfirmDialog({
     return (
         <Modal isOpen={isOpen} onClose={onClose} title={title}>
             <div className="p-6">
-                <p className="text-gray-600 mb-6">{message}</p>
-                <div className="flex justify-end gap-4">
+                <p className="text-gray-300 mb-6">{message}</p>
+                <div className="flex justify-end gap-3">
                     <button
                         onClick={onClose}
-                        className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                        className="px-4 py-2 text-gray-300 hover:text-white"
                     >
                         {cancelText}
                     </button>
                     <button
                         onClick={handleConfirm}
-                        className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+                        className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
                     >
                         {confirmText}
                     </button>

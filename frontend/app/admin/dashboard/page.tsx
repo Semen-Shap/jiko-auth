@@ -3,6 +3,8 @@
 import { useEffect } from 'react';
 import { useStats } from '../../../lib/hooks/useAdmin';
 import { useAdminAuth } from '../../../lib/hooks/useAdmin';
+import { Users, CheckCircle, Link, TrendingUp } from 'lucide-react';
+import StatCard from './StatCard';
 
 export default function Dashboard() {
     const { token } = useAdminAuth();
@@ -21,56 +23,36 @@ export default function Dashboard() {
     return (
         <div>
             <div className="flex justify-between items-center mb-8">
-                <h2 className="text-2xl font-bold text-gray-800">Dashboard</h2>
-                <div className="text-sm text-gray-500">
+                <h2 className="text-2xl font-medium text-white">Dashboard</h2>
+                <div className="text-sm text-gray-400">
                     {new Date().toLocaleDateString('ru-RU')}
                 </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-gray-600 text-sm">Всего пользователей</p>
-                            <p className="text-2xl font-bold text-gray-800">{stats?.total_users || 0}</p>
-                        </div>
-                        <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                            👥
-                        </div>
-                    </div>
-                </div>
-                <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-gray-600 text-sm">Подтвержденных</p>
-                            <p className="text-2xl font-bold text-gray-800">{stats?.total_verified_users || 0}</p>
-                        </div>
-                        <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                            ✅
-                        </div>
-                    </div>
-                </div>
-                <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-gray-600 text-sm">OAuth клиентов</p>
-                            <p className="text-2xl font-bold text-gray-800">{stats?.total_clients || 0}</p>
-                        </div>
-                        <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
-                            🔗
-                        </div>
-                    </div>
-                </div>
-                <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-gray-600 text-sm">Новых сегодня</p>
-                            <p className="text-2xl font-bold text-gray-800">{stats?.new_users_today || 0}</p>
-                        </div>
-                        <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
-                            📈
-                        </div>
-                    </div>
-                </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <StatCard
+                    icon={Users}
+                    title="All users"
+                    value={stats?.total_users || 0}
+                    color="bg-blue-600"
+                />
+                <StatCard
+                    icon={CheckCircle}
+                    title="Verified users"
+                    value={stats?.total_verified_users || 0}
+                    color="bg-green-600"
+                />
+                <StatCard
+                    icon={Link}
+                    title="OAuth clients"
+                    value={stats?.total_clients || 0}
+                    color="bg-purple-600"
+                />
+                <StatCard
+                    icon={TrendingUp}
+                    title="New users today"
+                    value={stats?.new_users_today || 0}
+                    color="bg-orange-600"
+                />
             </div>
         </div>
     );

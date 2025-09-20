@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 export interface User {
     id: string;
@@ -54,7 +54,7 @@ export function useStats() {
     const [stats, setStats] = useState<Stats | null>(null);
     const [loading, setLoading] = useState(false);
 
-    const loadStats = async (token: string) => {
+    const loadStats = useCallback(async (token: string) => {
         setLoading(true);
         try {
             const response = await fetch('/api/v1/admin/stats', {
@@ -72,7 +72,7 @@ export function useStats() {
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
     return { stats, loading, loadStats };
 }
@@ -84,7 +84,7 @@ export function useUsers(token: string | null) {
     const [loading, setLoading] = useState(false);
     const usersPerPage = 20;
 
-    const loadUsers = async (page = 1) => {
+    const loadUsers = useCallback(async (page = 1) => {
         if (!token) return;
 
         setLoading(true);
@@ -107,9 +107,9 @@ export function useUsers(token: string | null) {
         } finally {
             setLoading(false);
         }
-    };
+    }, [token, usersPerPage]);
 
-    const createUser = async (userData: any) => {
+    const createUser = useCallback(async (userData: any) => {
         if (!token) return;
 
         try {
@@ -127,9 +127,9 @@ export function useUsers(token: string | null) {
             console.error('Error creating user:', error);
             return false;
         }
-    };
+    }, [token]);
 
-    const updateUser = async (userId: string, userData: any) => {
+    const updateUser = useCallback(async (userId: string, userData: any) => {
         if (!token) return;
 
         try {
@@ -147,9 +147,9 @@ export function useUsers(token: string | null) {
             console.error('Error updating user:', error);
             return false;
         }
-    };
+    }, [token]);
 
-    const deleteUser = async (userId: string) => {
+    const deleteUser = useCallback(async (userId: string) => {
         if (!token) return;
 
         try {
@@ -165,7 +165,7 @@ export function useUsers(token: string | null) {
             console.error('Error deleting user:', error);
             return false;
         }
-    };
+    }, [token]);
 
     return {
         users,
@@ -184,7 +184,7 @@ export function useClients(token: string | null) {
     const [clients, setClients] = useState<Client[]>([]);
     const [loading, setLoading] = useState(false);
 
-    const loadClients = async () => {
+    const loadClients = useCallback(async () => {
         if (!token) return;
 
         setLoading(true);
@@ -204,9 +204,9 @@ export function useClients(token: string | null) {
         } finally {
             setLoading(false);
         }
-    };
+    }, [token]);
 
-    const createClient = async (clientData: any) => {
+    const createClient = useCallback(async (clientData: any) => {
         if (!token) return;
 
         try {
@@ -224,9 +224,9 @@ export function useClients(token: string | null) {
             console.error('Error creating client:', error);
             return null;
         }
-    };
+    }, [token]);
 
-    const deleteClient = async (clientId: string) => {
+    const deleteClient = useCallback(async (clientId: string) => {
         if (!token) return;
 
         try {
@@ -242,7 +242,7 @@ export function useClients(token: string | null) {
             console.error('Error deleting client:', error);
             return false;
         }
-    };
+    }, [token]);
 
     return {
         clients,
