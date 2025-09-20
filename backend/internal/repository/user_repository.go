@@ -117,7 +117,7 @@ func (r *userRepository) GetUserByVerificationToken(ctx context.Context, token s
 
 func (r *userRepository) MarkEmailAsVerified(ctx context.Context, userID uuid.UUID) error {
 	return r.db.WithContext(ctx).Exec(
-		"UPDATE asset_users SET email_verified = true, email_verification_token = NULL, updated_at = ? WHERE id = ?",
+		"UPDATE users SET email_verified = true, email_verification_token = NULL, updated_at = ? WHERE id = ?",
 		time.Now(), userID,
 	).Error
 }

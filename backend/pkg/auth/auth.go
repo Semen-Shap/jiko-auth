@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"context"
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
@@ -36,6 +37,60 @@ func NewAuthService(userRepo repository.UserRepository, cfg *config.Config, jwtS
 		emailService: emailService,
 		cfg:          cfg,
 	}
+}
+
+// InitializeAdmin создает администратора при первом запуске приложения
+func (s *AuthService) InitializeAdmin(ctx context.Context) error {
+	// Проверяем, заданы ли переменные окружения для админа
+	if s.cfg.AppUser == "" || s.cfg.AppPassword == "" {
+		logger.Info("Admin credentials not configured, skipping admin initialization")
+		return nil
+	}
+
+	// Проверяем, существует ли уже администратор
+	admin, err := s.userRepo.GetUserByEmail(ctx, s.cfg.AppUser)
+	if err != nil {
+		logger.Error("Error checking for existing admin", zap.Error(err))
+		return fmt.Errorf("failed to check existing admin: %w", err)
+	}
+
+	if admin != nil {
+		// Админ уже существует, проверяем его роль
+		if admin.Role != "admin" {
+			admin.Role = "admin"
+			if err := s.userRepo.UpdateUser(ctx, admin); err != nil {
+				logger.Error("Failed to update admin role", zap.Error(err))
+				return fmt.Errorf("failed to update admin role: %w", err)
+			}
+			logger.Info("Updated existing user to admin role", zap.String("email", s.cfg.AppUser))
+		} else {
+			logger.Info("Admin user already exists", zap.String("email", s.cfg.AppUser))
+		}
+		return nil
+	}
+
+	// Создаем нового администратора
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(s.cfg.AppPassword), bcrypt.DefaultCost)
+	if err != nil {
+		logger.Error("Failed to hash admin password", zap.Error(err))
+		return fmt.Errorf("failed to hash admin password: %w", err)
+	}
+
+	newAdmin := &models.User{
+		Username:      s.cfg.AppUser,
+		Email:         s.cfg.AppUser,
+		Password:      string(hashedPassword),
+		Role:          "admin",
+		EmailVerified: true,
+	}
+
+	if err := s.userRepo.CreateUser(ctx, newAdmin); err != nil {
+		logger.Error("Failed to create admin user", zap.Error(err))
+		return fmt.Errorf("failed to create admin user: %w", err)
+	}
+
+	logger.Info("Admin user created successfully", zap.String("email", s.cfg.AppUser))
+	return nil
 }
 
 type RegisterRequest struct {
@@ -227,62 +282,6 @@ func (s *AuthService) Login(c *gin.Context) {
 	}
 
 	ctx := c.Request.Context()
-
-	// Сначала проверяем, не пытается ли админ войти с admin credentials
-	if req.Identifier == s.cfg.AppUser && req.Password == s.cfg.AppPassword {
-		// Ищем существующего админа или создаем нового
-		user, err := s.userRepo.GetUserByEmail(ctx, req.Identifier)
-		if user == nil || err != nil {
-			// Создаем админа, если не существует или произошла ошибка
-			hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
-			if err != nil {
-				logger.Error("Failed to hash password", zap.Error(err))
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to authenticate admin"})
-				return
-			}
-
-			newAdmin := &models.User{
-				Username:      req.Identifier,
-				Email:         req.Identifier,
-				Password:      string(hashedPassword),
-				Role:          "admin",
-				EmailVerified: true,
-			}
-
-			if err := s.userRepo.CreateUser(ctx, newAdmin); err != nil {
-				logger.Error("Failed to create admin user", zap.Error(err))
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to authenticate admin"})
-				return
-			}
-			user = newAdmin
-		} else {
-			// Пользователь найден, обновляем роль если необходимо
-			if user.Role != "admin" {
-				user.Role = "admin"
-				if err := s.userRepo.UpdateUser(ctx, user); err != nil {
-					logger.Error("Failed to update user role to admin", zap.Error(err))
-				}
-			}
-		}
-
-		// Генерация JWT токена для админа
-		token, expiresAt, err := s.GenerateJWTToken(user.ID, user.Role)
-		if err != nil {
-			logger.Error("Failed to generate JWT token", zap.Error(err))
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to generate token"})
-			return
-		}
-
-		// Не возвращаем пароль в ответе
-		user.Password = ""
-
-		c.JSON(http.StatusOK, AuthResponse{
-			AccessToken: token,
-			ExpiresAt:   expiresAt,
-			User:        user,
-		})
-		return
-	}
 
 	// Обычный пользователь - поиск по email или username
 	user, err := s.userRepo.GetUserByEmail(ctx, req.Identifier)

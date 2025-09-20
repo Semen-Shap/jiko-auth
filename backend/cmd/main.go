@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"jiko-auth/internal/config"
 	"jiko-auth/internal/database"
 	"jiko-auth/internal/handlers"
@@ -17,10 +18,8 @@ import (
 )
 
 func main() {
-	// Загрузка конфигурации
 	cfg := config.Load()
 
-	// Подключение к базе данных
 	db, err := database.Init(cfg)
 	if err != nil {
 		log.Fatal("Failed to connect to database:", err)
@@ -44,6 +43,11 @@ func main() {
 	codesHandler := handlers.NewCodesHandler(clientRepo)
 	adminHandler := handlers.NewAdminHandler(userRepo, clientRepo)
 
+	// Инициализация администратора
+	if err := authHandler.InitializeAdmin(context.Background()); err != nil {
+		log.Fatal("Failed to initialize admin:", err)
+	}
+
 	// Настройка роутера
 	router := routes.SetupRouter(authHandler, oauthHandler, codesHandler, adminHandler, jwtService)
 
@@ -53,7 +57,6 @@ func main() {
 		Handler: router,
 	}
 
-	
 	log.Printf("Server starting on port %s", cfg.ServerPort)
 	if err := server.ListenAndServe(); err != nil {
 		log.Fatal("Server failed to start:", err)

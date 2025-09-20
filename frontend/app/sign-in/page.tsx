@@ -65,19 +65,14 @@ export default function SignIn() {
             if (response.ok) {
                 showNotification(data.message || 'Success!', 'success');
 
-                // Check if user is admin
-                if (data.user && data.user.role === 'admin') {
-                    localStorage.setItem('admin_token', data.access_token);
-                    localStorage.setItem('admin_user', JSON.stringify(data.user));
-                    showNotification('Welcome to the admin panel!', 'success');
-                    setTimeout(() => {
-                        window.location.href = '/admin';
-                    }, 1000);
-                } else {
-                    setTimeout(() => {
-                        window.location.href = '/';
-                    }, 1000);
-                }
+                // Save token and user data for all users
+                localStorage.setItem('access_token', data.access_token);
+                localStorage.setItem('user', JSON.stringify(data.user));
+
+                // Redirect to home page for all users
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 1000);
             } else {
                 showNotification(data.error || 'An error occurred', 'error');
             }

@@ -11,11 +11,15 @@ export interface User {
 
 export interface Client {
     id: string;
-    name: string;
+    user_id: string;
     username: string;
     email: string;
+    name: string;
     redirect_uris: string[];
+    grants: string[];
+    scope: string;
     created_at: string;
+    updated_at: string;
 }
 
 export interface Stats {
@@ -30,7 +34,7 @@ export function useAdminAuth() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
 
     useEffect(() => {
-        const adminToken = localStorage.getItem('admin_token');
+        const adminToken = localStorage.getItem('access_token');
         if (adminToken) {
             setToken(adminToken);
             setIsAuthenticated(true);
@@ -40,8 +44,8 @@ export function useAdminAuth() {
     }, []);
 
     const logout = () => {
-        localStorage.removeItem('admin_token');
-        localStorage.removeItem('admin_user');
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('user');
         setToken(null);
         setIsAuthenticated(false);
         window.location.href = '/';
@@ -216,16 +220,51 @@ export function useClients(token: string | null) {
         if (!token) return;
 
         try {
-            const response = await fetch('/api/v1/admin/clients', {
+            // First, create the user
+            const userResponse = await fetch('/api/v1/admin/users', {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(clientData)
+                body: JSON.stringify({
+                    username: clientData.username,
+                    email: clientData.email,
+                    password: clientData.password,
+                    role: 'user'
+                })
             });
 
-            return response.ok ? await response.json() : null;
+            if (!userResponse.ok) {
+                const errorData = await userResponse.json();
+                console.error('Error creating user:', errorData);
+                return null;
+            }
+
+            const user = await userResponse.json();
+
+            // Then, create the client with the user ID
+            const clientResponse = await fetch('/api/v1/admin/clients', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    user_id: user.id,
+                    name: clientData.name,
+                    redirect_uris: clientData.redirect_uris
+                })
+            });
+
+            if (!clientResponse.ok) {
+                const errorData = await clientResponse.json();
+                console.error('Error creating client:', errorData);
+                return null;
+            }
+
+            const client = await clientResponse.json();
+            return client;
         } catch (error) {
             console.error('Error creating client:', error);
             return null;

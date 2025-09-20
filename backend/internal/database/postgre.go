@@ -22,7 +22,7 @@ var DB *gorm.DB
 func Init(cfg *config.Config) (*gorm.DB, error) {
 	dsn := fmt.Sprintf(
 		"host=%s port=%s user=%s password=%s dbname=%s sslmode=disable TimeZone=UTC",
-		cfg.DBHost, // Используем определенный хост
+		cfg.DBHost,
 		cfg.DBPort,
 		cfg.DBUser,
 		cfg.DBPassword,
@@ -42,7 +42,6 @@ func Init(cfg *config.Config) (*gorm.DB, error) {
 			},
 		),
 		NamingStrategy: schema.NamingStrategy{
-			TablePrefix:   "asset_",
 			SingularTable: false,
 		},
 		TranslateError: true,
@@ -104,18 +103,4 @@ func Close() {
 			sqlDB.Close()
 		}
 	}
-}
-
-func GetDB(ctx context.Context) *gorm.DB {
-	return DB.WithContext(ctx)
-}
-
-// HealthCheck проверяет доступность базы данных
-func HealthCheck(ctx context.Context) error {
-	sqlDB, err := DB.DB()
-	if err != nil {
-		return fmt.Errorf("failed to get database instance: %w", err)
-	}
-
-	return sqlDB.PingContext(ctx)
 }

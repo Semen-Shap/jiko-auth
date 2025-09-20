@@ -12,16 +12,33 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     const [token, setToken] = useState<string | null>(null);
 
     useEffect(() => {
-        const adminToken = localStorage.getItem('admin_token');
-        if (!adminToken) {
+        const adminToken = localStorage.getItem('access_token');
+        const storedUser = localStorage.getItem('user');
+
+        if (!adminToken || !storedUser) {
             window.location.href = '/';
             return;
         }
+
+        try {
+            const user = JSON.parse(storedUser);
+            if (user.role !== 'admin') {
+                window.location.href = '/';
+                return;
+            }
+        } catch (error) {
+            console.error('Error parsing user data:', error);
+            window.location.href = '/';
+            return;
+        }
+
         setToken(adminToken);
     }, []);
 
     const logout = () => {
-        localStorage.removeItem('admin_token');
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('user');
+        localStorage.removeItem('admin_token'); // Also remove old admin token if exists
         localStorage.removeItem('admin_user');
         window.location.href = '/';
     };

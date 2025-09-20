@@ -28,8 +28,8 @@ type OAuthClient struct {
 	UserID       uuid.UUID `gorm:"type:uuid;not null" json:"user_id"`
 	Name         string    `gorm:"type:varchar(255);not null" json:"name"`
 	Secret       string    `gorm:"type:varchar(255);not null" json:"secret"`
-	RedirectURIs string    `gorm:"type:text" json:"redirect_uris"` // JSON строка вместо массива
-	Grants       string    `gorm:"type:text" json:"grants"`        // JSON строка вместо массива
+	RedirectURIs string    `gorm:"type:text" json:"redirect_uris"`
+	Grants       string    `gorm:"type:text" json:"grants"`
 	Scope        string    `gorm:"type:varchar(500)" json:"scope"`
 	CreatedAt    time.Time `gorm:"autoCreateTime" json:"created_at"`
 	UpdatedAt    time.Time `gorm:"autoUpdateTime" json:"updated_at"`
