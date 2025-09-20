@@ -79,8 +79,8 @@ func SetupRouter(
 		// Auth routes
 		api.POST("/auth/register", authHandler.Register)
 		api.POST("/auth/login", authHandler.Login)
+		api.POST("/auth/admin/login", authHandler.AdminLogin)
 		api.GET("/auth/verify-email", authHandler.VerifyEmail)
-		api.POST("/auth/resend-verification", authHandler.ResendVerification)
 
 		// OAuth routes
 		api.GET("/oauth/authorize", oauthHandler.Authorize)
@@ -90,6 +90,16 @@ func SetupRouter(
 		api.GET("/clients", middleware.AuthMiddleware(jwtService), oauthHandler.GetClients)
 		api.POST("/clients", middleware.AuthMiddleware(jwtService), oauthHandler.CreateClient)
 		api.POST("/clients/:id/tokens", middleware.AuthMiddleware(jwtService), oauthHandler.CreateToken)
+
+		// Admin routes
+		admin := api.Group("/admin")
+		admin.Use(middleware.AdminMiddleware(jwtService))
+		{
+			admin.GET("/clients", oauthHandler.GetAllClients)
+			admin.POST("/clients", oauthHandler.AdminCreateClient)
+			admin.PUT("/clients/:id", oauthHandler.AdminUpdateClient)
+			admin.DELETE("/clients/:id", oauthHandler.AdminDeleteClient)
+		}
 
 		// Health check
 		api.GET("/healthcheck", func(c *gin.Context) {

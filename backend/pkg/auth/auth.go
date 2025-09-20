@@ -45,6 +45,11 @@ type RegisterRequest struct {
 }
 
 type LoginRequest struct {
+	Identifier string `json:"identifier" binding:"required"` // Может быть email или username
+	Password   string `json:"password" binding:"required"`
+}
+
+type AdminLoginRequest struct {
 	Email    string `json:"email" binding:"required,email"`
 	Password string `json:"password" binding:"required"`
 }
@@ -104,6 +109,20 @@ func (s *AuthService) Register(c *gin.Context) {
 	if err != nil {
 		logger.Error("Error checking email existence", zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Registration failed"})
+		return
+	}
+
+	// Проверка существования пользователя по username
+	exitingUserByUsername, err := s.userRepo.GetUserByUsername(ctx, req.Username)
+	if err != nil {
+		logger.Error("Error checking username existence", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Registration failed"})
+		return
+	}
+
+	if exitingUserByUsername != nil {
+		logger.Info("Registration attempt with existing username", zap.String("username", req.Username))
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Пользователь с таким username уже зарегистрирован"})
 		return
 	}
 
@@ -214,11 +233,15 @@ func (s *AuthService) Login(c *gin.Context) {
 
 	ctx := c.Request.Context()
 
-	// Поиск пользователя по email
-	user, err := s.userRepo.GetUserByEmail(ctx, req.Email)
+	// Поиск пользователя по email или username
+	user, err := s.userRepo.GetUserByEmail(ctx, req.Identifier)
 	if err != nil || user == nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid credentials"})
-		return
+		// Если не найдено по email, попробуем по username
+		user, err = s.userRepo.GetUserByUsername(ctx, req.Identifier)
+		if err != nil || user == nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid credentials"})
+			return
+		}
 	}
 
 	// Проверка верификации email
@@ -259,7 +282,7 @@ func (s *AuthService) Login(c *gin.Context) {
 			return
 		}
 
-		logger.Info("Registration attempt with existing email", zap.String("email", req.Email))
+		logger.Info("Registration attempt with existing email", zap.String("identifier", req.Identifier))
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Пользователь с таким email уже зарегистрирован"})
 		return
 	}
@@ -271,7 +294,7 @@ func (s *AuthService) Login(c *gin.Context) {
 	}
 
 	// Генерация JWT токена
-	token, expiresAt, err := s.GenerateJWTToken(user.ID)
+	token, expiresAt, err := s.GenerateJWTToken(user.ID, user.Role)
 	if err != nil {
 		logger.Error("Failed to generate JWT token", zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to generate token"})
@@ -288,13 +311,14 @@ func (s *AuthService) Login(c *gin.Context) {
 	})
 }
 
-func (s *AuthService) GenerateJWTToken(userID uuid.UUID) (string, int64, error) {
+func (s *AuthService) GenerateJWTToken(userID uuid.UUID, role string) (string, int64, error) {
 	expiresAt := time.Now().Add(time.Hour * 24).Unix()
 
 	claims := jwt.MapClaims{
-		"sub": userID.String(),
-		"exp": expiresAt,
-		"iat": time.Now().Unix(),
+		"sub":  userID.String(),
+		"role": role,
+		"exp":  expiresAt,
+		"iat":  time.Now().Unix(),
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -450,53 +474,65 @@ func CurrentUserHandler(c *gin.Context) {
 	})
 }
 
-func (s *AuthService) ResendVerification(c *gin.Context) {
-	var req struct {
-		Email string `json:"email" binding:"required,email"`
+func (s *AuthService) AdminLogin(c *gin.Context) {
+	var req AdminLoginRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
+		return
 	}
 
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid email"})
+	// Проверяем, соответствует ли логин и пароль переменным окружения
+	if req.Email != s.cfg.AppUser || req.Password != s.cfg.AppPassword {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid admin credentials"})
 		return
 	}
 
 	ctx := c.Request.Context()
+
+	// Ищем существующего админа или создаем нового
 	user, err := s.userRepo.GetUserByEmail(ctx, req.Email)
-	if err != nil || user == nil {
-		// В целях безопасности не раскрываем, существует ли пользователь
-		c.JSON(http.StatusOK, gin.H{"message": "If this email is registered, a verification email will be sent"})
+	if err != nil && user == nil {
+		// Создаем админа, если не существует
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+		if err != nil {
+			logger.Error("Failed to hash password", zap.Error(err))
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create admin"})
+			return
+		}
+
+		newAdmin := &models.User{
+			Username:      req.Email,
+			Email:         req.Email,
+			Password:      string(hashedPassword),
+			Role:          "admin",
+			EmailVerified: true,
+		}
+
+		if err := s.userRepo.CreateUser(ctx, newAdmin); err != nil {
+			logger.Error("Failed to create admin user", zap.Error(err))
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create admin"})
+			return
+		}
+		user = newAdmin
+	} else if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to authenticate admin"})
 		return
 	}
 
-	if user.EmailVerified {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Email is already verified"})
-		return
-	}
-
-	// Генерируем новый токен
-	newToken, err := GenerateVerificationToken()
+	// Генерация JWT токена для админа
+	token, expiresAt, err := s.GenerateJWTToken(user.ID, user.Role)
 	if err != nil {
-		logger.Error("Failed to generate verification token", zap.Error(err))
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to resend verification email"})
+		logger.Error("Failed to generate JWT token", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to generate token"})
 		return
 	}
 
-	// Обновляем токен и время отправки
-	user.EmailVerificationToken = &newToken
-	user.EmailVerificationSentAt = time.Now()
+	// Не возвращаем пароль в ответе
+	user.Password = ""
 
-	if err := s.userRepo.UpdateUser(ctx, user); err != nil {
-		logger.Error("Failed to update user verification token", zap.Error(err))
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to resend verification email"})
-		return
-	}
-
-	// Отправляем письмо
-	if err := s.emailService.SendVerificationEmail(user.Email, newToken); err != nil {
-		logger.Error("Failed to send verification email", zap.Error(err))
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send verification email"})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"message": "Verification email sent"})
+	c.JSON(http.StatusOK, AuthResponse{
+		AccessToken: token,
+		ExpiresAt:   expiresAt,
+		User:        user,
+	})
 }

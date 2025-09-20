@@ -3,9 +3,13 @@
     <div class="auth-header">
         <div class="logo">
             <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
-                <path d="M20 0C8.954 0 0 8.954 0 20C0 31.046 8.954 40 20 40C31.046 40 40 31.046 40 20C40 8.954 31.046 0 20 0Z" fill="#00CED1"/>
-                <path d="M26.5 15.5C26.5 12.466 24.034 10 21 10C17.966 10 15.5 12.466 15.5 15.5C15.5 18.534 17.966 21 21 21C24.034 21 26.5 18.534 26.5 15.5Z" fill="white"/>
-                <path d="M28 25C28 21.686 25.314 19 22 19H20C16.686 19 14 21.686 14 25V30H28V25Z" fill="white"/>
+                <path
+                    d="M20 0C8.954 0 0 8.954 0 20C0 31.046 8.954 40 20 40C31.046 40 40 31.046 40 20C40 8.954 31.046 0 20 0Z"
+                    fill="#00CED1" />
+                <path
+                    d="M26.5 15.5C26.5 12.466 24.034 10 21 10C17.966 10 15.5 12.466 15.5 15.5C15.5 18.534 17.966 21 21 21C24.034 21 26.5 18.534 26.5 15.5Z"
+                    fill="white" />
+                <path d="M28 25C28 21.686 25.314 19 22 19H20C16.686 19 14 21.686 14 25V30H28V25Z" fill="white" />
             </svg>
             <h1>JIKO</h1>
         </div>
@@ -20,9 +24,9 @@
     <div class="auth-forms">
         <form id="login-form" class="auth-form active" action="/api/v1/auth/login" method="POST">
             <div class="form-group">
-                <label for="login-email">Email</label>
-                <input type="email" id="login-email" name="email" required>
-                <div id="login-email-error" class="error-message"></div>
+                <label for="login-identifier">Email или имя пользователя</label>
+                <input type="text" id="login-identifier" name="identifier" required>
+                <div id="login-identifier-error" class="error-message"></div>
             </div>
             <div class="form-group">
                 <label for="login-password">Пароль</label>
@@ -30,7 +34,6 @@
                 <div id="login-password-error" class="error-message"></div>
             </div>
             <button type="submit" class="auth-button">Войти</button>
-        </form>
         </form>
 
         <!-- Форма регистрации -->
@@ -48,7 +51,8 @@
             <div class="form-group">
                 <label for="register-password">Пароль</label>
                 <input type="password" id="register-password" name="password" required minlength="8">
-                <div class="password-requirements">Должен содержать заглавные, строчные буквы, цифры и специальные символы</div>
+                <div class="password-requirements">Должен содержать заглавные, строчные буквы, цифры и специальные
+                    символы</div>
                 <div id="register-password-error" class="error-message"></div>
             </div>
             <div class="form-group">

@@ -14,10 +14,11 @@ func NewService(secret string) *Service {
 	return &Service{secret: secret}
 }
 
-func (s *Service) GenerateToken(userID, email string) (string, error) {
+func (s *Service) GenerateToken(userID, email, role string) (string, error) {
 	claims := jwt.MapClaims{
 		"sub":   userID,
 		"email": email,
+		"role":  role,
 		"exp":   time.Now().Add(time.Hour * 24).Unix(), // Token expires in 24 hours
 		"iat":   time.Now().Unix(),
 	}

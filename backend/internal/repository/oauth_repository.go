@@ -40,6 +40,20 @@ func (r *OAuthClientRepository) GetUserClients(userID uuid.UUID) ([]*models.OAut
 	return clients, err
 }
 
+func (r *OAuthClientRepository) GetAllClients() ([]*models.OAuthClient, error) {
+	var clients []*models.OAuthClient
+	err := r.db.Find(&clients).Error
+	return clients, err
+}
+
+func (r *OAuthClientRepository) UpdateClient(client *models.OAuthClient) error {
+	return r.db.Save(client).Error
+}
+
+func (r *OAuthClientRepository) DeleteClient(clientID string) error {
+	return r.db.Where("id = ?", clientID).Delete(&models.OAuthClient{}).Error
+}
+
 type AuthCodeRepository struct {
 	db *gorm.DB
 }

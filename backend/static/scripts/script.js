@@ -27,9 +27,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (loginForm) {
         loginForm.addEventListener('submit', function (e) {
+            console.log('Login form submit event triggered');
             e.preventDefault();
+            console.log('Calling validateLoginForm');
             if (validateLoginForm()) {
+                console.log('Validation passed, calling submitForm');
                 submitForm(this, '/api/v1/auth/login');
+            } else {
+                console.log('Validation failed');
             }
         });
     }
@@ -75,34 +80,59 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 function validateLoginForm() {
+    console.log('validateLoginForm called');
     let isValid = true;
-    const email = document.getElementById('login-email');
+    const identifier = document.getElementById('login-identifier');
     const password = document.getElementById('login-password');
-    const emailError = document.getElementById('login-email-error');
+    const identifierError = document.getElementById('login-identifier-error');
     const passwordError = document.getElementById('login-password-error');
 
+    console.log('Identifier value:', identifier.value);
+    console.log('Password value:', password.value);
+
     // Reset errors
-    emailError.style.display = 'none';
+    identifierError.style.display = 'none';
     passwordError.style.display = 'none';
 
-    // Validate email
-    if (!email.value) {
-        emailError.textContent = 'Email обязателен';
-        emailError.style.display = 'block';
+    // Validate identifier (email or username)
+    if (!identifier.value) {
+        console.log('Identifier is empty');
+        identifierError.textContent = 'Email или имя пользователя обязательно';
+        identifierError.style.display = 'block';
         isValid = false;
-    } else if (!isValidEmail(email.value)) {
-        emailError.textContent = 'Введите корректный email';
-        emailError.style.display = 'block';
-        isValid = false;
+    } else if (identifier.value.includes('@')) {
+        // If it contains @, validate as email
+        if (!isValidEmail(identifier.value)) {
+            console.log('Invalid email format');
+            identifierError.textContent = 'Введите корректный email';
+            identifierError.style.display = 'block';
+            isValid = false;
+        } else {
+            console.log('Email validation passed');
+        }
+    } else {
+        // Validate as username (basic validation)
+        if (identifier.value.length < 3) {
+            console.log('Username too short');
+            identifierError.textContent = 'Имя пользователя должно содержать не менее 3 символов';
+            identifierError.style.display = 'block';
+            isValid = false;
+        } else {
+            console.log('Username validation passed');
+        }
     }
 
     // Validate password
     if (!password.value) {
+        console.log('Password is empty');
         passwordError.textContent = 'Пароль обязателен';
         passwordError.style.display = 'block';
         isValid = false;
+    } else {
+        console.log('Password validation passed');
     }
 
+    console.log('Validation result:', isValid);
     return isValid;
 }
 
@@ -238,17 +268,24 @@ function hasSpecialChar(str) {
 }
 
 function submitForm(form, url) {
+    console.log('submitForm called with URL:', url);
     const formData = new FormData(form);
+    const data = Object.fromEntries(formData);
+    console.log('Form data:', data);
 
     fetch(url, {
         method: 'POST',
-        body: JSON.stringify(Object.fromEntries(formData)),
+        body: JSON.stringify(data),
         headers: {
             'Content-Type': 'application/json'
         }
     })
-        .then(response => response.json().then(data => ({ status: response.status, body: data })))
+        .then(response => {
+            console.log('Response status:', response.status);
+            return response.json().then(data => ({ status: response.status, body: data }));
+        })
         .then(({ status, body }) => {
+            console.log('Response body:', body);
             if (status === 200) {
                 showNotification(body.message || 'Успешно!', 'success');
                 if (url.includes('login')) {

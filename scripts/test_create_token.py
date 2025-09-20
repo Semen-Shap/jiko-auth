@@ -14,7 +14,7 @@ def login_user(email, password):
     url = f"{BASE_URL}/auth/login"
 
     login_data = {
-        "email": email,
+        "identifier": email,
         "password": password
     }
 
