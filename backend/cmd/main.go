@@ -36,9 +36,10 @@ func main() {
 	// Инициализация сервисов
 	jwtService := jwt.NewService(cfg.JWTSecret)
 	oauthService := oauth2.NewService(authCodeRepo, tokenRepo, clientRepo)
+	emailService := email.NewEmailService(cfg)
 
 	// Инициализация обработчиков
-	authHandler := auth.NewAuthService(userRepo, cfg, cfg.JWTSecret, email.NewEmailService())
+	authHandler := auth.NewAuthService(userRepo, cfg, cfg.JWTSecret, emailService)
 	oauthHandler := handlers.NewOAuthHandler(oauthService, clientRepo, userRepo)
 	codesHandler := handlers.NewCodesHandler(clientRepo)
 

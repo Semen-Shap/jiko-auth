@@ -21,24 +21,36 @@ type Config struct {
 	DBMaxIdleConns int
 	DBMaxIdleTime  time.Duration
 	DBMaxLifeTime  time.Duration
+	SmtpHost       string
+	SmtpPort       string
+	SmtpUsername   string
+	SmtpPassword   string
+	SmtpFromEmail  string
+	AppUrl         string
 }
 
 func Load() *Config {
 	return &Config{
 		AppEnv:         getEnv("APP_ENV", "development"),
+		AppUrl:         getEnv("APP_URL", "http://localhost:8080"),
 		AppUser:        getEnv("APP_USER", "admin"),
 		AppPassword:    getEnv("APP_PASSWORD", ""),
 		DBHost:         getEnv("DB_HOST", "localhost"),
 		DBPort:         getEnv("DB_PORT", "5432"),
-		DBUser:         getEnv("DB_USER", "postgres"),
-		DBPassword:     getEnv("DB_PASSWORD", ""),
-		DBName:         getEnv("DB_NAME", "auth_db"),
+		DBUser:         getEnv("DB_USER", "admin"),
+		DBPassword:     getEnv("DB_PASSWORD", "strongpass"),
+		DBName:         getEnv("DB_NAME", "assetdb"),
 		ServerPort:     getEnv("SERVER_PORT", "8080"),
 		JWTSecret:      getEnv("JWT_SECRET", "your-secret-key"),
 		DBMaxOpenConns: getEnvAsInt("DB_MAX_OPEN_CONNS", 25),
 		DBMaxIdleConns: getEnvAsInt("DB_MAX_IDLE_CONNS", 25),
 		DBMaxIdleTime:  getEnvAsDuration("DB_MAX_IDLE_TIME", time.Minute*5),
 		DBMaxLifeTime:  getEnvAsDuration("DB_MAX_LIFE_TIME", time.Hour*1),
+		SmtpHost:       getEnv("SMTP_HOST", ""),
+		SmtpPort:       getEnv("SMTP_PORT", ""),
+		SmtpUsername:   getEnv("SMTP_USERNAME", ""),
+		SmtpPassword:   getEnv("SMTP_PASSWORD", ""),
+		SmtpFromEmail:  getEnv("SMTP_FROM_EMAIL", ""),
 	}
 }
 
@@ -48,10 +60,6 @@ func getEnv(key, defaultValue string) string {
 		return defaultValue
 	}
 	return value
-}
-
-func AppEnv() string {
-	return getEnv("APP_ENV", "development")
 }
 
 func getEnvAsInt(key string, defaultValue int) int {

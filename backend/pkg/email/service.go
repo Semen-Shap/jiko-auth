@@ -2,9 +2,9 @@ package email
 
 import (
 	"fmt"
+	"jiko-auth/internal/config"
 	"jiko-auth/pkg/logger"
 	"net/smtp"
-	"os"
 	"strings"
 
 	"go.uber.org/zap"
@@ -19,19 +19,14 @@ type EmailService struct {
 	baseURL      string
 }
 
-func NewEmailService() *EmailService {
-	baseURL := os.Getenv("APP_URL")
-	if baseURL == "" {
-		baseURL = "http://localhost:8080"
-	}
-
+func NewEmailService(cfg *config.Config) *EmailService {
 	return &EmailService{
-		smtpHost:     os.Getenv("SMTP_HOST"),
-		smtpPort:     os.Getenv("SMTP_PORT"),
-		smtpUsername: os.Getenv("SMTP_USERNAME"),
-		smtpPassword: os.Getenv("SMTP_PASSWORD"),
-		fromEmail:    os.Getenv("SMTP_FROM_EMAIL"),
-		baseURL:      baseURL,
+		smtpHost:     cfg.SmtpHost,
+		smtpPort:     cfg.SmtpPort,
+		smtpUsername: cfg.SmtpUsername,
+		smtpPassword: cfg.SmtpPassword,
+		fromEmail:    cfg.SmtpFromEmail,
+		baseURL:      cfg.AppUrl,
 	}
 }
 

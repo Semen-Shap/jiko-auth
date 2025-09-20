@@ -19,26 +19,17 @@ import (
 
 var DB *gorm.DB
 
-func getDBHost(cfg *config.Config) string {
-	if os.Getenv("DOCKER_COMPOSE") == "true" {
-		return "postgres" // имя сервиса в Docker Compose
-	}
-	return cfg.DBHost
-}
-
 func Init(cfg *config.Config) (*gorm.DB, error) {
-	dbHost := getDBHost(cfg)
-
 	dsn := fmt.Sprintf(
 		"host=%s port=%s user=%s password=%s dbname=%s sslmode=disable TimeZone=UTC",
-		dbHost, // Используем определенный хост
+		cfg.DBHost, // Используем определенный хост
 		cfg.DBPort,
 		cfg.DBUser,
 		cfg.DBPassword,
 		cfg.DBName,
 	)
 
-	logger.Info(fmt.Sprintf("Connecting to database at host: %s, user: %s, dbname: %s", dbHost, cfg.DBUser, cfg.DBName))
+	logger.Info(fmt.Sprintf("Connecting to database at host: %s, user: %s, dbname: %s", cfg.DBHost, cfg.DBUser, cfg.DBName))
 
 	gormConfig := &gorm.Config{
 		Logger: gormLogger.New(

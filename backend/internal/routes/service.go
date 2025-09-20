@@ -21,10 +21,10 @@ func SetupRouter(
 	router.Use(middleware.CORSMiddleware())
 
 	// Загружаем HTML шаблоны
-	router.LoadHTMLGlob("/static/html/*")
+	router.LoadHTMLGlob("./static/html/*")
 
 	// Статические файлы
-	router.Static("/static", "/static") // HTML страницы
+	router.Static("/static", "./static") // HTML страницы
 	router.GET("/", func(c *gin.Context) {
 		c.HTML(200, "base.html", gin.H{
 			"Title": "Вход и регистрация",
