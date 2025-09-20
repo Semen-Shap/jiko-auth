@@ -6,6 +6,7 @@ import { useAdminAuth } from '@/lib/hooks/useAdmin';
 import { useNotification } from '@/components/Notification';
 import { CreateClientModal } from './CreateClientModal';
 import { DeleteClientModal } from './DeleteClientModal';
+import { ClientCreatedModal } from './ClientCreatedModal';
 import { Button } from '@/components/ui/button';
 import {
     Table,
@@ -44,6 +45,8 @@ export default function Clients() {
     // Modal states
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+    const [showCreatedModal, setShowCreatedModal] = useState(false);
+    const [createdClient, setCreatedClient] = useState<{ id: string; secret: string } | null>(null);
     const [clientToDelete, setClientToDelete] = useState<{ id: string; name: string } | null>(null);
 
     useEffect(() => {
@@ -59,7 +62,8 @@ export default function Clients() {
         const result = await createClient(clientData);
         if (result) {
             showNotification('Client created successfully', 'success');
-            alert(`Client created!\nID: ${result.id}\nSecret: ${result.secret}\n\nSAVE THE SECRET - it will not be shown again!`);
+            setCreatedClient({ id: result.id, secret: result.secret });
+            setShowCreatedModal(true);
             setShowCreateModal(false);
             loadClients();
             return true;
@@ -94,11 +98,11 @@ export default function Clients() {
         });
     };
 
-	const { state } = useSidebar();
-	const width = state === 'expanded'
-		? 'calc(100vw - var(--sidebar-width) - 50px)'
-		: 'calc(100vw - 50px)';
-        
+    const { state } = useSidebar();
+    const width = state === 'expanded'
+        ? 'calc(100vw - var(--sidebar-width) - 50px)'
+        : 'calc(100vw - 50px)';
+
     return (
         <div>
             <div className="flex justify-between items-center mb-8">
@@ -195,7 +199,16 @@ export default function Clients() {
                 loading={loading}
             />
 
-            {/* Delete Confirmation Dialog */}
+            {/* Client Created Modal */}
+            <ClientCreatedModal
+                isOpen={showCreatedModal}
+                onClose={() => {
+                    setShowCreatedModal(false);
+                    setCreatedClient(null);
+                }}
+                client={createdClient}
+            />
+
             <DeleteClientModal
                 isOpen={showDeleteDialog}
                 onClose={() => { setShowDeleteDialog(false); setClientToDelete(null); }}
