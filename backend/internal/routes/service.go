@@ -13,6 +13,7 @@ func SetupRouter(
 	authHandler *auth.AuthService,
 	oauthHandler *handlers.OAuthHandler,
 	codesHandler *handlers.CodesHandler,
+	adminHandler *handlers.AdminHandler,
 	jwtService *jwt.Service,
 ) *gin.Engine {
 	router := gin.Default()
@@ -40,6 +41,12 @@ func SetupRouter(
 	router.GET("/register", func(c *gin.Context) {
 		c.HTML(200, "base.html", gin.H{
 			"Title": "Регистрация",
+		})
+	})
+
+	router.GET("/admin", func(c *gin.Context) {
+		c.HTML(200, "admin.html", gin.H{
+			"Title": "Admin Panel",
 		})
 	})
 
@@ -79,7 +86,6 @@ func SetupRouter(
 		// Auth routes
 		api.POST("/auth/register", authHandler.Register)
 		api.POST("/auth/login", authHandler.Login)
-		api.POST("/auth/admin/login", authHandler.AdminLogin)
 		api.GET("/auth/verify-email", authHandler.VerifyEmail)
 
 		// OAuth routes
@@ -95,7 +101,18 @@ func SetupRouter(
 		admin := api.Group("/admin")
 		admin.Use(middleware.AdminMiddleware(jwtService))
 		{
-			admin.GET("/clients", oauthHandler.GetAllClients)
+			// Dashboard & Statistics
+			admin.GET("/stats", adminHandler.GetStats)
+
+			// User Management
+			admin.GET("/users", adminHandler.GetUsers)
+			admin.GET("/users/:id", adminHandler.GetUser)
+			admin.POST("/users", adminHandler.CreateUser)
+			admin.PUT("/users/:id", adminHandler.UpdateUser)
+			admin.DELETE("/users/:id", adminHandler.DeleteUser)
+
+			// Client Management (enhanced)
+			admin.GET("/clients", adminHandler.GetAllClientsWithUsers)
 			admin.POST("/clients", oauthHandler.AdminCreateClient)
 			admin.PUT("/clients/:id", oauthHandler.AdminUpdateClient)
 			admin.DELETE("/clients/:id", oauthHandler.AdminDeleteClient)

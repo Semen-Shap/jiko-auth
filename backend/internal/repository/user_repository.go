@@ -22,6 +22,11 @@ type UserRepository interface {
 	DeleteUser(ctx context.Context, id uuid.UUID) error // Изменено на uuid.UUID
 	ListUsers(ctx context.Context, limit, offset int) ([]*models.User, error)
 	MarkEmailAsVerified(ctx context.Context, userID uuid.UUID) error
+
+	// Admin operations
+	GetUsersWithFilters(ctx context.Context, limit, offset int, role, emailVerified string) ([]*models.User, error)
+	GetUserCount(ctx context.Context) (int64, error)
+	GetUserCountByDateRange(ctx context.Context, start, end time.Time) (int64, error)
 }
 
 type userRepository struct {
@@ -115,4 +120,45 @@ func (r *userRepository) MarkEmailAsVerified(ctx context.Context, userID uuid.UU
 		"UPDATE asset_users SET email_verified = true, email_verification_token = NULL, updated_at = ? WHERE id = ?",
 		time.Now(), userID,
 	).Error
+}
+
+// Admin operations
+func (r *userRepository) GetUsersWithFilters(ctx context.Context, limit, offset int, role, emailVerified string) ([]*models.User, error) {
+	query := r.db.WithContext(ctx)
+
+	if role != "" {
+		query = query.Where("role = ?", role)
+	}
+
+	if emailVerified != "" {
+		if emailVerified == "true" {
+			query = query.Where("email_verified = true")
+		} else if emailVerified == "false" {
+			query = query.Where("email_verified = false")
+		}
+	}
+
+	var users []*models.User
+	if err := query.Limit(limit).Offset(offset).Find(&users).Error; err != nil {
+		return nil, fmt.Errorf("failed to list users with filters: %w", err)
+	}
+	return users, nil
+}
+
+func (r *userRepository) GetUserCount(ctx context.Context) (int64, error) {
+	var count int64
+	if err := r.db.WithContext(ctx).Model(&models.User{}).Count(&count).Error; err != nil {
+		return 0, fmt.Errorf("failed to get user count: %w", err)
+	}
+	return count, nil
+}
+
+func (r *userRepository) GetUserCountByDateRange(ctx context.Context, start, end time.Time) (int64, error) {
+	var count int64
+	if err := r.db.WithContext(ctx).Model(&models.User{}).
+		Where("created_at BETWEEN ? AND ?", start, end).
+		Count(&count).Error; err != nil {
+		return 0, fmt.Errorf("failed to get user count by date range: %w", err)
+	}
+	return count, nil
 }

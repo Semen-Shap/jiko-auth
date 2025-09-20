@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"jiko-auth/internal/models"
 	"time"
 
@@ -52,6 +53,33 @@ func (r *OAuthClientRepository) UpdateClient(client *models.OAuthClient) error {
 
 func (r *OAuthClientRepository) DeleteClient(clientID string) error {
 	return r.db.Where("id = ?", clientID).Delete(&models.OAuthClient{}).Error
+}
+
+// Admin methods
+func (r *OAuthClientRepository) GetClientCount(ctx context.Context) (int64, error) {
+	var count int64
+	if err := r.db.WithContext(ctx).Model(&models.OAuthClient{}).Count(&count).Error; err != nil {
+		return 0, err
+	}
+	return count, nil
+}
+
+func (r *OAuthClientRepository) GetClientCountByDateRange(ctx context.Context, start, end time.Time) (int64, error) {
+	var count int64
+	if err := r.db.WithContext(ctx).Model(&models.OAuthClient{}).
+		Where("created_at BETWEEN ? AND ?", start, end).
+		Count(&count).Error; err != nil {
+		return 0, err
+	}
+	return count, nil
+}
+
+func (r *OAuthClientRepository) GetClientsWithPagination(ctx context.Context, limit, offset int) ([]*models.OAuthClient, error) {
+	var clients []*models.OAuthClient
+	if err := r.db.WithContext(ctx).Limit(limit).Offset(offset).Find(&clients).Error; err != nil {
+		return nil, err
+	}
+	return clients, nil
 }
 
 type AuthCodeRepository struct {

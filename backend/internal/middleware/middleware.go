@@ -67,7 +67,14 @@ func AdminMiddleware(jwtService *jwt.Service) gin.HandlerFunc {
 		}
 
 		role, exists := claims["role"]
-		if !exists || role != "admin" {
+		if !exists {
+			c.JSON(http.StatusForbidden, gin.H{"error": "Invalid token claims"})
+			c.Abort()
+			return
+		}
+
+		roleStr, ok := role.(string)
+		if !ok || roleStr != "admin" {
 			c.JSON(http.StatusForbidden, gin.H{"error": "Admin access required"})
 			c.Abort()
 			return

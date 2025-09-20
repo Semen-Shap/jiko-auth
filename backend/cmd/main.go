@@ -42,9 +42,10 @@ func main() {
 	authHandler := auth.NewAuthService(userRepo, cfg, cfg.JWTSecret, emailService)
 	oauthHandler := handlers.NewOAuthHandler(oauthService, clientRepo, userRepo)
 	codesHandler := handlers.NewCodesHandler(clientRepo)
+	adminHandler := handlers.NewAdminHandler(userRepo, clientRepo)
 
 	// Настройка роутера
-	router := routes.SetupRouter(authHandler, oauthHandler, codesHandler, jwtService)
+	router := routes.SetupRouter(authHandler, oauthHandler, codesHandler, adminHandler, jwtService)
 
 	// Запуск сервера
 	server := &http.Server{

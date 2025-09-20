@@ -34,7 +34,7 @@ func Load() *Config {
 		AppEnv:         getEnv("APP_ENV", "development"),
 		AppUrl:         getEnv("APP_URL", "http://localhost:8080"),
 		AppUser:        getEnv("APP_USER", "admin"),
-		AppPassword:    getEnv("APP_PASSWORD", ""),
+		AppPassword:    getEnv("APP_PASSWORD", "admin"),
 		DBHost:         getEnv("DB_HOST", "localhost"),
 		DBPort:         getEnv("DB_PORT", "5432"),
 		DBUser:         getEnv("DB_USER", "admin"),

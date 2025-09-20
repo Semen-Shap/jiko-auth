@@ -11,45 +11,34 @@
 
 <body>
     <div class="container">
-        <div class="auth-container">
-            <div class="auth-header">
-                <div class="logo">
-                    <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
-                        <path
-                            d="M20 0C8.954 0 0 8.954 0 20C0 31.046 8.954 40 20 40C31.046 40 40 31.046 40 20C40 8.954 31.046 0 20 0Z"
-                            fill="#00CED1" />
-                        <path
-                            d="M26.5 15.5C26.5 12.466 24.034 10 21 10C17.966 10 15.5 12.466 15.5 15.5C15.5 18.534 17.966 21 21 21C24.034 21 26.5 18.534 26.5 15.5Z"
-                            fill="white" />
-                        <path d="M28 25C28 21.686 25.314 19 22 19H20C16.686 19 14 21.686 14 25V30H28V25Z"
-                            fill="white" />
-                    </svg>
-                    <h1>JIKO</h1>
-                </div>
-                <p class="tagline">Современная платформа для управления активами</p>
-            </div>
-
+        <div class="bg-gray-800 rounded-xl p-10 w-full max-w-md mx-auto shadow-2xl">
             <div class="verification-result">
                 {{if .Success}}
-                <div class="verification-success">
-                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <div class="text-center">
+                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        class="text-green-400 mx-auto mb-4">
                         <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
                         <polyline points="22 4 12 14.01 9 11.01"></polyline>
                     </svg>
-                    <h2>Успешная верификация!</h2>
-                    <p>{{.Message}}</p>
-                    <a href="/login" class="auth-button">Войти в аккаунт</a>
+                    <h2 class="text-2xl font-bold text-white mb-4">Успешная верификация!</h2>
+                    <p class="text-gray-300 mb-6">{{.Message}}</p>
+                    <a href="/login"
+                        class="inline-block w-full py-3 bg-cyan-500 text-black font-semibold rounded-lg text-center transition-all hover:bg-cyan-400">Войти
+                        в аккаунт</a>
                 </div>
                 {{else}}
-                <div class="verification-error">
-                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <div class="text-center">
+                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        class="text-red-400 mx-auto mb-4">
                         <circle cx="12" cy="12" r="10"></circle>
                         <line x1="15" y1="9" x2="9" y2="15"></line>
                         <line x1="9" y1="9" x2="15" y2="15"></line>
                     </svg>
-                    <h2>Ошибка верификации</h2>
-                    <p>{{.Message}}</p>
-                    <a href="/" class="auth-button">Вернуться на главную</a>
+                    <h2 class="text-2xl font-bold text-white mb-4">Ошибка верификации</h2>
+                    <p class="text-gray-300 mb-6">{{.Message}}</p>
+                    <a href="/"
+                        class="inline-block w-full py-3 bg-cyan-500 text-black font-semibold rounded-lg text-center transition-all hover:bg-cyan-400">Вернуться
+                        на главную</a>
                 </div>
                 {{end}}
             </div>

@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JIKO - {{.Title}}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="min-h-screen">
+        <div class="flex flex-col min-h-screen">
+            <div class="bg-gradient-to-br from-blue-500 to-purple-600 text-white p-4 shadow-lg">
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center gap-4">
+                        <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+                            <path
+                                d="M20 0C8.954 0 0 8.954 0 20C0 31.046 8.954 40 20 40C31.046 40 40 31.046 40 20C40 8.954 31.046 0 20 0Z"
+                                fill="#00CED1" />
+                            <path
+                                d="M26.5 15.5C26.5 12.466 24.034 10 21 10C17.966 10 15.5 12.466 15.5 15.5C15.5 18.534 17.966 21 21 21C24.034 21 26.5 18.534 26.5 15.5Z"
+                                fill="white" />
+                            <path d="M28 25C28 21.686 25.314 19 22 19H20C16.686 19 14 21.686 14 25V30H28V25Z"
+                                fill="white" />
+                        </svg>
+                        <h1 class="text-xl font-bold m-0">JIKO Admin</h1>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <span id="admin-username">Admin</span>
+                        <button
+                            class="bg-white/20 border border-white/30 text-white px-4 py-2 rounded cursor-pointer text-sm transition-all hover:bg-white/30 hover:-translate-y-0.5"
+                            onclick="logout()">Выйти</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-1 min-h-[calc(100vh-80px)]">
+                <div class="w-64 bg-gray-50 border-r border-gray-200 p-8">
+                    <nav class="admin-menu">
+                        <ul class="list-none p-0 m-0">
+                            <li class="mb-2">
+                                <a href="#dashboard"
+                                    class="flex items-center gap-3 px-6 py-3 text-gray-600 no-underline transition-all border-l-4 border-transparent hover:bg-gray-100 hover:text-cyan-500 active"
+                                    onclick="showSection('dashboard')">
+                                    <span class="text-lg w-5 text-center">📊</span> Dashboard
+                                </a>
+                            </li>
+                            <li class="mb-2">
+                                <a href="#users"
+                                    class="flex items-center gap-3 px-6 py-3 text-gray-600 no-underline transition-all border-l-4 border-transparent hover:bg-gray-100 hover:text-cyan-500"
+                                    onclick="showSection('users')">
+                                    <span class="text-lg w-5 text-center">👥</span> Пользователи
+                                </a>
+                            </li>
+                            <li class="mb-2">
+                                <a href="#clients"
+                                    class="flex items-center gap-3 px-6 py-3 text-gray-600 no-underline transition-all border-l-4 border-transparent hover:bg-gray-100 hover:text-cyan-500"
+                                    onclick="showSection('clients')">
+                                    <span class="text-lg w-5 text-center">🔐</span> OAuth клиенты
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+
+                <div class="flex-1 p-8 bg-white overflow-y-auto">
+                    <!-- Dashboard Section -->
+                    <div id="dashboard-section" class="block">
+                        <div class="flex justify-between items-center mb-8">
+                            <h2 class="text-gray-800 mb-0 font-bold text-3xl">Dashboard</h2>
+                            <div id="react-status"></div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                            <div
+                                class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4 transition-all hover:-translate-y-1 hover:shadow-lg">
+                                <div
+                                    class="text-3xl w-15 h-15 flex items-center justify-center bg-gradient-to-br from-cyan-500 to-teal-500 rounded-full text-white">
+                                    👥</div>
+                                <div class="stat-content">
+                                    <h3 id="total-users" class="text-3xl font-bold text-gray-800 m-0 mb-2">-</h3>
+                                    <p class="text-gray-500 m-0 text-sm">Всего пользователей</p>
+                                </div>
+                            </div>
+                            <div
+                                class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4 transition-all hover:-translate-y-1 hover:shadow-lg">
+                                <div
+                                    class="text-3xl w-15 h-15 flex items-center justify-center bg-gradient-to-br from-cyan-500 to-teal-500 rounded-full text-white">
+                                    ✅</div>
+                                <div class="stat-content">
+                                    <h3 id="verified-users" class="text-3xl font-bold text-gray-800 m-0 mb-2">-</h3>
+                                    <p class="text-gray-500 m-0 text-sm">Верифицированных</p>
+                                </div>
+                            </div>
+                            <div
+                                class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4 transition-all hover:-translate-y-1 hover:shadow-lg">
+                                <div
+                                    class="text-3xl w-15 h-15 flex items-center justify-center bg-gradient-to-br from-cyan-500 to-teal-500 rounded-full text-white">
+                                    🔐</div>
+                                <div class="stat-content">
+                                    <h3 id="total-clients" class="text-3xl font-bold text-gray-800 m-0 mb-2">-</h3>
+                                    <p class="text-gray-500 m-0 text-sm">OAuth клиентов</p>
+                                </div>
+                            </div>
+                            <div
+                                class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4 transition-all hover:-translate-y-1 hover:shadow-lg">
+                                <div
+                                    class="text-3xl w-15 h-15 flex items-center justify-center bg-gradient-to-br from-cyan-500 to-teal-500 rounded-full text-white">
+                                    📈</div>
+                                <div class="stat-content">
+                                    <h3 id="new-users-today" class="text-3xl font-bold text-gray-800 m-0 mb-2">-</h3>
+                                    <p class="text-gray-500 m-0 text-sm">Новых пользователей сегодня</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Users Section -->
+                    <div id="users-section" class="hidden">
+                        <div class="flex justify-between items-center mb-8">
+                            <h2 class="text-gray-800 mb-0 font-bold text-3xl">Управление пользователями</h2>
+                            <button
+                                class="px-4 py-2 border-none rounded cursor-pointer text-sm font-medium no-underline inline-block transition-all mr-2 last:mr-0 bg-gradient-to-br from-cyan-500 to-teal-500 text-white hover:from-teal-500 hover:to-cyan-600 hover:-translate-y-0.5"
+                                onclick="showCreateUserModal()">Создать пользователя</button>
+                        </div>
+
+                        <div class="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 mb-6">
+                            <table class="w-full border-collapse" id="users-table">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th
+                                            class="p-4 text-left font-semibold text-gray-600 border-b border-gray-200 text-sm">
+                                            ID</th>
+                                        <th
+                                            class="p-4 text-left font-semibold text-gray-600 border-b border-gray-200 text-sm">
+                                            Имя пользователя</th>
+                                        <th
+                                            class="p-4 text-left font-semibold text-gray-600 border-b border-gray-200 text-sm">
+                                            Email</th>
+                                        <th
+                                            class="p-4 text-left font-semibold text-gray-600 border-b border-gray-200 text-sm">
+                                            Роль</th>
+                                        <th
+                                            class="p-4 text-left font-semibold text-gray-600 border-b border-gray-200 text-sm">
+                                            Верифицирован</th>
+                                        <th
+                                            class="p-4 text-left font-semibold text-gray-600 border-b border-gray-200 text-sm">
+                                            Создан</th>
+                                        <th
+                                            class="p-4 text-left font-semibold text-gray-600 border-b border-gray-200 text-sm">
+                                            Действия</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="users-table-body">
+                                    <!-- Пользователи будут загружены через JS -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="flex justify-center gap-2 mb-4" id="users-pagination">
+                            <!-- Пагинация будет добавлена через JS -->
+                        </div>
+                    </div>
+
+                    <!-- Clients Section -->
+                    <div id="clients-section" class="hidden">
+                        <div class="flex justify-between items-center mb-8">
+                            <h2 class="text-gray-800 mb-0 font-bold text-3xl">OAuth клиенты</h2>
+                            <button
+                                class="px-4 py-2 border-none rounded cursor-pointer text-sm font-medium no-underline inline-block transition-all mr-2 last:mr-0 bg-gradient-to-br from-cyan-500 to-teal-500 text-white hover:from-teal-500 hover:to-cyan-600 hover:-translate-y-0.5"
+                                onclick="showCreateClientModal()">Создать клиента</button>
+                        </div>
+
+                        <div class="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 mb-6">
+                            <table class="w-full border-collapse" id="clients-table">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th
+                                            class="p-4 text-left font-semibold text-gray-600 border-b border-gray-200 text-sm">
+                                            ID</th>
+                                        <th
+                                            class="p-4 text-left font-semibold text-gray-600 border-b border-gray-200 text-sm">
+                                            Имя</th>
+                                        <th
+                                            class="p-4 text-left font-semibold text-gray-600 border-b border-gray-200 text-sm">
+                                            Владелец</th>
+                                        <th
+                                            class="p-4 text-left font-semibold text-gray-600 border-b border-gray-200 text-sm">
+                                            Email владельца</th>
+                                        <th
+                                            class="p-4 text-left font-semibold text-gray-600 border-b border-gray-200 text-sm">
+                                            Redirect URIs</th>
+                                        <th
+                                            class="p-4 text-left font-semibold text-gray-600 border-b border-gray-200 text-sm">
+                                            Создан</th>
+                                        <th
+                                            class="p-4 text-left font-semibold text-gray-600 border-b border-gray-200 text-sm">
+                                            Действия</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="clients-table-body">
+                                    <!-- Клиенты будут загружены через JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Create User Modal -->
+        <div id="createUserModal" class="hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-sm">
+            <div
+                class="bg-white mx-auto mt-20 p-0 rounded-xl w-11/12 max-w-md shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
+                <div class="p-6 pb-4 flex justify-between items-center border-b border-gray-100">
+                    <h3 class="m-0 text-gray-800 font-bold">Создать пользователя</h3>
+                    <span class="text-xl font-bold cursor-pointer text-gray-400 transition-colors hover:text-gray-600"
+                        onclick="closeModal('createUserModal')">&times;</span>
+                </div>
+                <form id="createUserForm" class="p-6">
+                    <div class="mb-6">
+                        <label for="new-username" class="block mb-2 text-gray-600 font-medium">Имя пользователя</label>
+                        <input type="text" id="new-username" name="username"
+                            class="w-full p-3 border-2 border-gray-200 rounded font-normal transition-all focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/10 box-border"
+                            required>
+                    </div>
+                    <div class="mb-6">
+                        <label for="new-email" class="block mb-2 text-gray-600 font-medium">Email</label>
+                        <input type="email" id="new-email" name="email"
+                            class="w-full p-3 border-2 border-gray-200 rounded font-normal transition-all focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/10 box-border"
+                            required>
+                    </div>
+                    <div class="mb-6">
+                        <label for="new-password" class="block mb-2 text-gray-600 font-medium">Пароль</label>
+                        <input type="password" id="new-password" name="password"
+                            class="w-full p-3 border-2 border-gray-200 rounded font-normal transition-all focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/10 box-border"
+                            required>
+                    </div>
+                    <div class="mb-6">
+                        <label for="new-role" class="block mb-2 text-gray-600 font-medium">Роль</label>
+                        <select id="new-role" name="role"
+                            class="w-full p-3 border-2 border-gray-200 rounded font-normal transition-all focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/10 box-border"
+                            required>
+                            <option value="user">Пользователь</option>
+                            <option value="admin">Администратор</option>
+                        </select>
+                    </div>
+                    <div class="p-4 pt-6 flex justify-end gap-4 border-t border-gray-100 mt-6">
+                        <button type="button"
+                            class="px-4 py-2 border border-gray-300 rounded cursor-pointer text-sm font-medium transition-all hover:bg-gray-50"
+                            onclick="closeModal('createUserModal')">Отмена</button>
+                        <button type="submit"
+                            class="px-4 py-2 border-none rounded cursor-pointer text-sm font-medium transition-all bg-gradient-to-br from-cyan-500 to-teal-500 text-white hover:from-teal-500 hover:to-cyan-600">Создать</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Create Client Modal -->
+        <div id="createClientModal" class="hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-sm">
+            <div
+                class="bg-white mx-auto mt-20 p-0 rounded-xl w-11/12 max-w-md shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
+                <div class="p-6 pb-4 flex justify-between items-center border-b border-gray-100">
+                    <h3 class="m-0 text-gray-800 font-bold">Создать OAuth клиента</h3>
+                    <span class="text-xl font-bold cursor-pointer text-gray-400 transition-colors hover:text-gray-600"
+                        onclick="closeModal('createClientModal')">&times;</span>
+                </div>
+                <form id="createClientForm" class="p-6">
+                    <div class="mb-6">
+                        <label for="client-user-id" class="block mb-2 text-gray-600 font-medium">ID пользователя</label>
+                        <input type="text" id="client-user-id" name="user_id"
+                            class="w-full p-3 border-2 border-gray-200 rounded font-normal transition-all focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/10 box-border"
+                            required>
+                        <small class="block mt-1 text-gray-500 text-xs">UUID пользователя, который будет владельцем
+                            клиента</small>
+                    </div>
+                    <div class="mb-6">
+                        <label for="client-name" class="block mb-2 text-gray-600 font-medium">Название
+                            приложения</label>
+                        <input type="text" id="client-name" name="name"
+                            class="w-full p-3 border-2 border-gray-200 rounded font-normal transition-all focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/10 box-border"
+                            required>
+                    </div>
+                    <div class="mb-6">
+                        <label for="client-redirect-uris" class="block mb-2 text-gray-600 font-medium">Redirect
+                            URIs</label>
+                        <textarea id="client-redirect-uris" name="redirect_uris"
+                            class="w-full p-3 border-2 border-gray-200 rounded font-normal transition-all focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/10 box-border"
+                            rows="3" placeholder="https://example.com/callback&#10;https://example.com/auth/callback"
+                            required></textarea>
+                        <small class="block mt-1 text-gray-500 text-xs">По одному URI на строку</small>
+                    </div>
+                    <div class="p-4 pt-6 flex justify-end gap-4 border-t border-gray-100 mt-6">
+                        <button type="button"
+                            class="px-4 py-2 border border-gray-300 rounded cursor-pointer text-sm font-medium transition-all hover:bg-gray-50"
+                            onclick="closeModal('createClientModal')">Отмена</button>
+                        <button type="submit"
+                            class="px-4 py-2 border-none rounded cursor-pointer text-sm font-medium transition-all bg-gradient-to-br from-cyan-500 to-teal-500 text-white hover:from-teal-500 hover:to-cyan-600">Создать</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Edit User Modal -->
+        <div id="editUserModal" class="hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-sm">
+            <div
+                class="bg-white mx-auto mt-20 p-0 rounded-xl w-11/12 max-w-md shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
+                <div class="p-6 pb-4 flex justify-between items-center border-b border-gray-100">
+                    <h3 class="m-0 text-gray-800 font-bold">Редактировать пользователя</h3>
+                    <span class="text-xl font-bold cursor-pointer text-gray-400 transition-colors hover:text-gray-600"
+                        onclick="closeModal('editUserModal')">&times;</span>
+                </div>
+                <form id="editUserForm" class="p-6">
+                    <input type="hidden" id="edit-user-id" name="user_id">
+                    <div class="mb-6">
+                        <label for="edit-username" class="block mb-2 text-gray-600 font-medium">Имя пользователя</label>
+                        <input type="text" id="edit-username" name="username"
+                            class="w-full p-3 border-2 border-gray-200 rounded font-normal transition-all focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/10 box-border">
+                    </div>
+                    <div class="mb-6">
+                        <label for="edit-email" class="block mb-2 text-gray-600 font-medium">Email</label>
+                        <input type="email" id="edit-email" name="email"
+                            class="w-full p-3 border-2 border-gray-200 rounded font-normal transition-all focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/10 box-border">
+                    </div>
+                    <div class="mb-6">
+                        <label for="edit-password" class="block mb-2 text-gray-600 font-medium">Новый пароль (оставьте
+                            пустым, чтобы не менять)</label>
+                        <input type="password" id="edit-password" name="password"
+                            class="w-full p-3 border-2 border-gray-200 rounded font-normal transition-all focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/10 box-border">
+                    </div>
+                    <div class="mb-6">
+                        <label for="edit-role" class="block mb-2 text-gray-600 font-medium">Роль</label>
+                        <select id="edit-role" name="role"
+                            class="w-full p-3 border-2 border-gray-200 rounded font-normal transition-all focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/10 box-border">
+                            <option value="user">Пользователь</option>
+                            <option value="admin">Администратор</option>
+                        </select>
+                    </div>
+                    <div class="mb-6">
+                        <label class="flex items-center gap-3 cursor-pointer m-0">
+                            <input type="checkbox" id="edit-email-verified" name="email_verified" class="w-auto m-0">
+                            <span
+                                class="relative h-5 w-5 bg-white border-2 border-gray-300 rounded transition-all peer-checked:bg-cyan-500 peer-checked:border-cyan-500">
+                                <span
+                                    class="absolute hidden peer-checked:block left-1.5 top-0.5 w-1.5 h-3 border-solid border-white border-l-2 border-b-2 rotate-45"></span>
+                            </span>
+                            Email верифицирован
+                        </label>
+                    </div>
+                    <div class="p-4 pt-6 flex justify-end gap-4 border-t border-gray-100 mt-6">
+                        <button type="button"
+                            class="px-4 py-2 border border-gray-300 rounded cursor-pointer text-sm font-medium transition-all hover:bg-gray-50"
+                            onclick="closeModal('editUserModal')">Отмена</button>
+                        <button type="submit"
+                            class="px-4 py-2 border-none rounded cursor-pointer text-sm font-medium transition-all bg-gradient-to-br from-cyan-500 to-teal-500 text-white hover:from-teal-500 hover:to-cyan-600">Сохранить</button>
+                    </div>
+                </form>
+            </div>
+        </div>

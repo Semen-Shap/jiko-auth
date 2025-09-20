@@ -49,11 +49,6 @@ type LoginRequest struct {
 	Password   string `json:"password" binding:"required"`
 }
 
-type AdminLoginRequest struct {
-	Email    string `json:"email" binding:"required,email"`
-	Password string `json:"password" binding:"required"`
-}
-
 type AuthResponse struct {
 	AccessToken string       `json:"access_token"`
 	ExpiresAt   int64        `json:"expires_at"`
@@ -233,7 +228,63 @@ func (s *AuthService) Login(c *gin.Context) {
 
 	ctx := c.Request.Context()
 
-	// Поиск пользователя по email или username
+	// Сначала проверяем, не пытается ли админ войти с admin credentials
+	if req.Identifier == s.cfg.AppUser && req.Password == s.cfg.AppPassword {
+		// Ищем существующего админа или создаем нового
+		user, err := s.userRepo.GetUserByEmail(ctx, req.Identifier)
+		if user == nil || err != nil {
+			// Создаем админа, если не существует или произошла ошибка
+			hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+			if err != nil {
+				logger.Error("Failed to hash password", zap.Error(err))
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to authenticate admin"})
+				return
+			}
+
+			newAdmin := &models.User{
+				Username:      req.Identifier,
+				Email:         req.Identifier,
+				Password:      string(hashedPassword),
+				Role:          "admin",
+				EmailVerified: true,
+			}
+
+			if err := s.userRepo.CreateUser(ctx, newAdmin); err != nil {
+				logger.Error("Failed to create admin user", zap.Error(err))
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to authenticate admin"})
+				return
+			}
+			user = newAdmin
+		} else {
+			// Пользователь найден, обновляем роль если необходимо
+			if user.Role != "admin" {
+				user.Role = "admin"
+				if err := s.userRepo.UpdateUser(ctx, user); err != nil {
+					logger.Error("Failed to update user role to admin", zap.Error(err))
+				}
+			}
+		}
+
+		// Генерация JWT токена для админа
+		token, expiresAt, err := s.GenerateJWTToken(user.ID, user.Role)
+		if err != nil {
+			logger.Error("Failed to generate JWT token", zap.Error(err))
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to generate token"})
+			return
+		}
+
+		// Не возвращаем пароль в ответе
+		user.Password = ""
+
+		c.JSON(http.StatusOK, AuthResponse{
+			AccessToken: token,
+			ExpiresAt:   expiresAt,
+			User:        user,
+		})
+		return
+	}
+
+	// Обычный пользователь - поиск по email или username
 	user, err := s.userRepo.GetUserByEmail(ctx, req.Identifier)
 	if err != nil || user == nil {
 		// Если не найдено по email, попробуем по username
@@ -471,68 +522,5 @@ func CurrentUserHandler(c *gin.Context) {
 		"username": user.Username,
 		"email":    user.Email,
 		"role":     user.Role,
-	})
-}
-
-func (s *AuthService) AdminLogin(c *gin.Context) {
-	var req AdminLoginRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
-		return
-	}
-
-	// Проверяем, соответствует ли логин и пароль переменным окружения
-	if req.Email != s.cfg.AppUser || req.Password != s.cfg.AppPassword {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid admin credentials"})
-		return
-	}
-
-	ctx := c.Request.Context()
-
-	// Ищем существующего админа или создаем нового
-	user, err := s.userRepo.GetUserByEmail(ctx, req.Email)
-	if err != nil && user == nil {
-		// Создаем админа, если не существует
-		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
-		if err != nil {
-			logger.Error("Failed to hash password", zap.Error(err))
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create admin"})
-			return
-		}
-
-		newAdmin := &models.User{
-			Username:      req.Email,
-			Email:         req.Email,
-			Password:      string(hashedPassword),
-			Role:          "admin",
-			EmailVerified: true,
-		}
-
-		if err := s.userRepo.CreateUser(ctx, newAdmin); err != nil {
-			logger.Error("Failed to create admin user", zap.Error(err))
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create admin"})
-			return
-		}
-		user = newAdmin
-	} else if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to authenticate admin"})
-		return
-	}
-
-	// Генерация JWT токена для админа
-	token, expiresAt, err := s.GenerateJWTToken(user.ID, user.Role)
-	if err != nil {
-		logger.Error("Failed to generate JWT token", zap.Error(err))
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to generate token"})
-		return
-	}
-
-	// Не возвращаем пароль в ответе
-	user.Password = ""
-
-	c.JSON(http.StatusOK, AuthResponse{
-		AccessToken: token,
-		ExpiresAt:   expiresAt,
-		User:        user,
 	})
 }

@@ -8,14 +8,20 @@ document.addEventListener('DOMContentLoaded', function () {
             const tab = button.getAttribute('data-tab');
 
             // Update active tab
-            tabButtons.forEach(btn => btn.classList.remove('active'));
-            button.classList.add('active');
+            tabButtons.forEach(btn => {
+                btn.classList.remove('active', 'text-white', 'border-cyan-400');
+                btn.classList.add('text-gray-400', 'border-transparent');
+            });
+            button.classList.add('active', 'text-white', 'border-cyan-400');
+            button.classList.remove('text-gray-400', 'border-transparent');
 
             // Show corresponding form
             authForms.forEach(form => {
-                form.classList.remove('active');
+                form.classList.add('hidden');
+                form.classList.remove('block');
                 if (form.id === `${tab}-form`) {
-                    form.classList.add('active');
+                    form.classList.remove('hidden');
+                    form.classList.add('block');
                 }
             });
         });
@@ -246,6 +252,32 @@ function validateConfirmPassword() {
     return true;
 }
 
+function showNotification(message, type = 'error') {
+    const notification = document.getElementById('notification');
+    const notificationMessage = document.getElementById('notification-message');
+
+    notificationMessage.textContent = message;
+
+    // Reset classes
+    notification.classList.remove('opacity-0', 'opacity-100', 'translate-y-[-100%]', 'translate-y-0', 'bg-red-500', 'bg-green-500');
+
+    // Set base classes
+    notification.classList.add('fixed', 'top-5', 'right-5', 'px-4', 'py-2', 'rounded-lg', 'text-white', 'font-medium', 'shadow-lg', 'z-50', 'transition-all', 'duration-300', 'opacity-100', 'translate-y-0');
+
+    // Set type-specific classes
+    if (type === 'success') {
+        notification.classList.add('bg-green-500');
+    } else {
+        notification.classList.add('bg-red-500');
+    }
+
+    // Hide after 3 seconds
+    setTimeout(() => {
+        notification.classList.remove('opacity-100', 'translate-y-0');
+        notification.classList.add('opacity-0', 'translate-y-[-100%]');
+    }, 3000);
+}
+
 function isValidEmail(email) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
@@ -289,10 +321,21 @@ function submitForm(form, url) {
             if (status === 200) {
                 showNotification(body.message || 'Успешно!', 'success');
                 if (url.includes('login')) {
-                    // Redirect to main page after successful login
-                    setTimeout(() => {
-                        window.location.href = '/';
-                    }, 1000);
+                    // Проверяем, является ли пользователь админом
+                    if (body.user && body.user.role === 'admin') {
+                        // Сохраняем токен админа и перенаправляем на админ панель
+                        localStorage.setItem('admin_token', body.access_token);
+                        localStorage.setItem('admin_user', JSON.stringify(body.user));
+                        showNotification('Добро пожаловать в админ панель!', 'success');
+                        setTimeout(() => {
+                            window.location.href = '/admin';
+                        }, 1000);
+                    } else {
+                        // Обычный пользователь - перенаправляем на главную
+                        setTimeout(() => {
+                            window.location.href = '/';
+                        }, 1000);
+                    }
                 } else if (url.includes('register')) {
                     // Switch to login tab after successful registration
                     document.querySelector('[data-tab="login"]').click();
@@ -308,20 +351,39 @@ function submitForm(form, url) {
         });
 }
 
-function showNotification(message, type = 'error') {
-    const notification = document.getElementById('notification');
-    const notificationMessage = document.getElementById('notification-message');
+function submitAdminForm(form, url) {
+    console.log('submitAdminForm called with URL:', url);
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData);
+    console.log('Admin form data:', data);
 
-    notificationMessage.textContent = message;
-    notification.className = 'notification';
-
-    if (type === 'success') {
-        notification.classList.add('success');
-    }
-
-    notification.classList.add('show');
-
-    setTimeout(() => {
-        notification.classList.remove('show');
-    }, 3000);
+    fetch(url, {
+        method: 'POST',
+        body: JSON.stringify(data),
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+        .then(response => {
+            console.log('Admin response status:', response.status);
+            return response.json().then(data => ({ status: response.status, body: data }));
+        })
+        .then(({ status, body }) => {
+            console.log('Admin response body:', body);
+            if (status === 200) {
+                // Store admin token and redirect to admin panel
+                localStorage.setItem('admin_token', body.access_token);
+                localStorage.setItem('admin_user', JSON.stringify(body.user));
+                showNotification('Успешный вход в админ панель!', 'success');
+                setTimeout(() => {
+                    window.location.href = '/admin';
+                }, 1000);
+            } else {
+                showNotification(body.error || 'Неверные данные админа', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Admin login error:', error);
+            showNotification('Произошла ошибка при входе в админ панель', 'error');
+        });
 }
