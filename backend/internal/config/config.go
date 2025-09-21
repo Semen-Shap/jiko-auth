@@ -38,7 +38,7 @@ func Load() *Config {
 		DBHost:         getEnv("DB_HOST", "localhost"),
 		DBPort:         getEnv("DB_PORT", "5432"),
 		DBUser:         getEnv("DB_USER", "admin"),
-		DBPassword:     getEnv("DB_PASSWORD", "strongpass"),
+		DBPassword:     getEnv("DB_PASSWORD", "admin"),
 		DBName:         getEnv("DB_NAME", "assetdb"),
 		ServerPort:     getEnv("SERVER_PORT", "8080"),
 		JWTSecret:      getEnv("JWT_SECRET", "your-secret-key"),
