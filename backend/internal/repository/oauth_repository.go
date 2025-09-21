@@ -193,3 +193,20 @@ func (r *TokenRepository) GetAccessToken(token string) (*models.AccessToken, err
 	err := r.db.First(&accessToken, "token = ?", token).Error
 	return &accessToken, err
 }
+
+func (r *TokenRepository) DeleteExpiredTokens() error {
+	now := time.Now()
+	// Удалить expired access tokens
+	if err := r.db.Where("expires_at < ?", now).Delete(&models.AccessToken{}).Error; err != nil {
+		return err
+	}
+	// Удалить expired refresh tokens
+	if err := r.db.Where("expires_at < ?", now).Delete(&models.RefreshToken{}).Error; err != nil {
+		return err
+	}
+	// Удалить expired authorization codes
+	if err := r.db.Where("expires_at < ?", now).Delete(&models.AuthorizationCode{}).Error; err != nil {
+		return err
+	}
+	return nil
+}

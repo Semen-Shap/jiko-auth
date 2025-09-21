@@ -19,6 +19,7 @@ type TokenRepository interface {
 	SaveRefreshToken(token, accessToken, clientID, userID, scope string, expiresAt time.Time) error
 	GetRefreshToken(token string) (*models.RefreshToken, error)
 	GetAccessToken(token string) (*models.AccessToken, error)
+	DeleteExpiredTokens() error
 }
 
 type ClientRepository interface {
@@ -164,4 +165,8 @@ func (s *Service) ExchangeCodeForToken(code, redirectURI, clientID, clientSecret
 		"refresh_token": refreshToken,
 		"scope":         authCode.Scope,
 	}, nil
+}
+
+func (s *Service) CleanupExpiredTokens() error {
+	return s.tokenRepo.DeleteExpiredTokens()
 }
