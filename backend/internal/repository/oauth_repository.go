@@ -187,3 +187,9 @@ func (r *TokenRepository) GetRefreshToken(token string) (*models.RefreshToken, e
 	err := r.db.First(&refreshToken, "token = ?", token).Error
 	return &refreshToken, err
 }
+
+func (r *TokenRepository) GetAccessToken(token string) (*models.AccessToken, error) {
+	var accessToken models.AccessToken
+	err := r.db.First(&accessToken, "token = ?", token).Error
+	return &accessToken, err
+}

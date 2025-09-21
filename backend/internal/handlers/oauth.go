@@ -372,3 +372,21 @@ func (h *OAuthHandler) AdminDeleteClient(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "Client deleted successfully"})
 }
+
+func (h *OAuthHandler) UserInfo(c *gin.Context) {
+	user, exists := c.Get("user")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found"})
+		return
+	}
+
+	u := user.(*models.User)
+
+	// Возвращаем профиль пользователя
+	c.JSON(http.StatusOK, gin.H{
+		"id":       u.ID,
+		"username": u.Username,
+		"email":    u.Email,
+		"role":     u.Role,
+	})
+}

@@ -49,7 +49,7 @@ func main() {
 	}
 
 	// Настройка роутера
-	router := routes.SetupRouter(authHandler, oauthHandler, codesHandler, adminHandler, jwtService)
+	router := routes.SetupRouter(authHandler, oauthHandler, codesHandler, adminHandler, jwtService, tokenRepo, userRepo)
 
 	// Запуск сервера
 	server := &http.Server{

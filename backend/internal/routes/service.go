@@ -3,6 +3,7 @@ package routes
 import (
 	"jiko-auth/internal/handlers"
 	"jiko-auth/internal/middleware"
+	"jiko-auth/internal/repository"
 	"jiko-auth/pkg/auth"
 	"jiko-auth/pkg/jwt"
 
@@ -15,6 +16,8 @@ func SetupRouter(
 	codesHandler *handlers.CodesHandler,
 	adminHandler *handlers.AdminHandler,
 	jwtService *jwt.Service,
+	tokenRepo *repository.TokenRepository,
+	userRepo repository.UserRepository,
 ) *gin.Engine {
 	router := gin.Default()
 
@@ -62,6 +65,7 @@ func SetupRouter(
 		// OAuth routes
 		api.GET("/oauth/authorize", oauthHandler.Authorize)
 		api.POST("/oauth/token", oauthHandler.Token)
+		api.GET("/oauth/userinfo", middleware.OAuthMiddleware(tokenRepo, userRepo), oauthHandler.UserInfo)
 
 		// Admin routes
 		admin := api.Group("/admin")

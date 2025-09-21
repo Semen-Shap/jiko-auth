@@ -18,6 +18,7 @@ type TokenRepository interface {
 	SaveAccessToken(token, clientID, userID, scope string, expiresAt time.Time) error
 	SaveRefreshToken(token, accessToken, clientID, userID, scope string, expiresAt time.Time) error
 	GetRefreshToken(token string) (*models.RefreshToken, error)
+	GetAccessToken(token string) (*models.AccessToken, error)
 }
 
 type ClientRepository interface {

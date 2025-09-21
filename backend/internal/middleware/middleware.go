@@ -5,6 +5,9 @@ import (
 	"jiko-auth/pkg/jwt"
 	"net/http"
 	"strings"
+	"time"
+
+	"jiko-auth/internal/repository"
 
 	"github.com/gin-gonic/gin"
 )
@@ -120,4 +123,43 @@ func extractTokenFromHeader(c *gin.Context) string {
 	}
 
 	return parts[1]
+}
+
+func OAuthMiddleware(tokenRepo *repository.TokenRepository, userRepo repository.UserRepository) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		tokenString := extractTokenFromHeader(c)
+		if tokenString == "" {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization token required"})
+			c.Abort()
+			return
+		}
+
+		// Получаем access token из БД
+		accessToken, err := tokenRepo.GetAccessToken(tokenString)
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+			c.Abort()
+			return
+		}
+
+		// Проверяем срок действия
+		if time.Now().After(accessToken.ExpiresAt) {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Token expired"})
+			c.Abort()
+			return
+		}
+
+		// Получаем пользователя
+		user, err := userRepo.GetUserByID(c.Request.Context(), accessToken.UserID)
+		if err != nil || user == nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found"})
+			c.Abort()
+			return
+		}
+
+		// Сохраняем информацию в контексте
+		c.Set("user", user)
+		c.Set("client_id", accessToken.ClientID.String())
+		c.Next()
+	}
 }
