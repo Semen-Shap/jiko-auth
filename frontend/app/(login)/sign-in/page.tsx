@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,8 +8,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useNotification } from '@/components/Notification';
+import Fallback from '@/components/fallback';
 
-export default function SignIn() {
+function SignInForm() {
     const [form, setForm] = useState({
         identifier: '',
         password: ''
@@ -156,5 +157,13 @@ export default function SignIn() {
 
             {NotificationComponent}
         </div>
+    );
+}
+
+export default function SignIn() {
+    return (
+        <Suspense fallback={<Fallback />}>
+            <SignInForm />
+        </Suspense>
     );
 }

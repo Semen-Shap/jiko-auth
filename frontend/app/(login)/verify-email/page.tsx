@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import Fallback from '@/components/fallback';
 
 function VerifyEmailContent() {
     const searchParams = useSearchParams();
@@ -76,7 +77,7 @@ function VerifyEmailContent() {
 
 export default function VerifyEmailPage() {
     return (
-        <Suspense fallback={<div className="h-full flex items-center justify-center"><Loader2 className="h-6 w-6 animate-spin" /></div>}>
+        <Suspense fallback={<Fallback />}>
             <VerifyEmailContent />
         </Suspense>
     );

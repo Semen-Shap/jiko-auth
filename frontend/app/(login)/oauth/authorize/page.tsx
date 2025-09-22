@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, Shield, CheckCircle, XCircle } from 'lucide-react';
+import Fallback from '@/components/fallback';
 
 interface ClientInfo {
     client_id: string;
@@ -14,7 +15,7 @@ interface ClientInfo {
     created_at: string;
 }
 
-export default function AuthorizePage() {
+function AuthorizePageContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { user, token, isAuthenticated, isLoading: authLoading } = useAuth();
@@ -49,25 +50,25 @@ export default function AuthorizePage() {
         }
 
         // Fetch client information
-        fetchClientInfo();
-    }, [authLoading, isAuthenticated, clientId, redirectUri, responseType]);
+        const fetchClientInfo = async () => {
+            try {
+                const response = await fetch(`/api/v1/oauth/client?client_id=${clientId}`);
 
-    const fetchClientInfo = async () => {
-        try {
-            const response = await fetch(`/api/v1/oauth/client?client_id=${clientId}`);
+                if (!response.ok) {
+                    throw new Error('Failed to retrieve application information');
+                }
 
-            if (!response.ok) {
-                throw new Error('Failed to retrieve application information');
+                const data = await response.json();
+                setClientInfo(data);
+            } catch (err) {
+                setError(err instanceof Error ? err.message : 'An error occurred');
+            } finally {
+                setLoading(false);
             }
+        };
 
-            const data = await response.json();
-            setClientInfo(data);
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'An error occurred');
-        } finally {
-            setLoading(false);
-        }
-    };
+        fetchClientInfo();
+    }, [authLoading, isAuthenticated, clientId, redirectUri, responseType, router]);
 
     const handleAuthorize = async (action: 'approve' | 'deny') => {
         setSubmitting(true);
@@ -212,5 +213,13 @@ export default function AuthorizePage() {
                 </CardFooter>
             </Card>
         </div>
+    );
+}
+
+export default function AuthorizePage() {
+    return (
+        <Suspense fallback={<Fallback />}>
+            <AuthorizePageContent />
+        </Suspense>
     );
 }
