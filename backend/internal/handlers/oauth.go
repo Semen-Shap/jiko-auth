@@ -63,12 +63,24 @@ func (h *OAuthHandler) Authorize(c *gin.Context) {
 		return
 	}
 
-	// Проверяем, авторизован ли пользователь
+	// Проверяем, авторизован ли пользователь (используем FlexibleAuthMiddleware)
+	authenticated, exists := c.Get("authenticated")
+	if !exists || !authenticated.(bool) {
+		// Если пользователь не авторизован, перенаправляем на фронтенд страницу авторизации
+		frontendURL := "/oauth/authorize"
+		queryParams := "?client_id=" + clientID +
+			"&redirect_uri=" + url.QueryEscape(redirectURI) +
+			"&response_type=" + responseType +
+			"&scope=" + scope +
+			"&state=" + state
+		c.Redirect(http.StatusFound, frontendURL+queryParams)
+		return
+	}
+
+	// Получаем ID пользователя
 	userID, exists := c.Get("user_id")
 	if !exists {
-		// Если пользователь не авторизован, перенаправляем на страницу логина
-		loginURL := "/login?redirect=" + url.QueryEscape(c.Request.URL.String())
-		c.Redirect(http.StatusFound, loginURL)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "user_id not found in context"})
 		return
 	}
 
@@ -87,6 +99,83 @@ func (h *OAuthHandler) Authorize(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusBadRequest, gin.H{"error": "unsupported response_type"})
+}
+
+// AuthorizeApproval обрабатывает подтверждение авторизации от пользователя
+func (h *OAuthHandler) AuthorizeApproval(c *gin.Context) {
+	var req struct {
+		ClientID     string `json:"client_id" binding:"required"`
+		RedirectURI  string `json:"redirect_uri" binding:"required"`
+		ResponseType string `json:"response_type" binding:"required"`
+		Scope        string `json:"scope"`
+		State        string `json:"state"`
+		Action       string `json:"action" binding:"required"` // "approve" или "deny"
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Проверяем авторизацию
+	authenticated, exists := c.Get("authenticated")
+	if !exists || !authenticated.(bool) {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "not authenticated"})
+		return
+	}
+
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "user_id not found"})
+		return
+	}
+
+	if req.Action == "deny" {
+		// Пользователь отказал в доступе
+		c.JSON(http.StatusOK, gin.H{
+			"redirect_url": req.RedirectURI + "?error=access_denied&state=" + req.State,
+		})
+		return
+	}
+
+	if req.Action == "approve" && req.ResponseType == "code" {
+		// Пользователь разрешил доступ, генерируем код
+		code, err := h.oauthService.GenerateAuthorizationCode(req.ClientID, userID.(string), req.RedirectURI, req.Scope)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to generate authorization code"})
+			return
+		}
+
+		// Возвращаем URL для перенаправления
+		c.JSON(http.StatusOK, gin.H{
+			"redirect_url": req.RedirectURI + "?code=" + code + "&state=" + req.State,
+		})
+		return
+	}
+
+	c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
+}
+
+// GetClientInfo возвращает информацию о клиенте для страницы авторизации
+func (h *OAuthHandler) GetClientInfo(c *gin.Context) {
+	clientID := c.Query("client_id")
+	if clientID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "client_id is required"})
+		return
+	}
+
+	client, err := h.clientRepo.GetClient(clientID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "client not found"})
+		return
+	}
+
+	// Возвращаем только публичную информацию о клиенте
+	c.JSON(http.StatusOK, gin.H{
+		"client_id":  client.ID,
+		"name":       client.Name,
+		"created_at": client.CreatedAt,
+	})
 }
 
 func (h *OAuthHandler) Token(c *gin.Context) {

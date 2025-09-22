@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,6 +17,8 @@ export default function SignIn() {
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [isLoading, setIsLoading] = useState(false);
     const { showNotification, NotificationComponent } = useNotification();
+    const searchParams = useSearchParams();
+    const redirectUrl = searchParams.get('redirect');
 
     const validateEmail = (email: string): boolean => {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -68,9 +71,15 @@ export default function SignIn() {
                 localStorage.setItem('access_token', data.access_token);
                 localStorage.setItem('user', JSON.stringify(data.user));
 
-                // Redirect to home page for all users
+                // Redirect back to OAuth authorize page if redirect parameter exists
                 setTimeout(() => {
-                    window.location.href = '/';
+                    if (redirectUrl) {
+                        // Decode the redirect URL and navigate to it
+                        window.location.href = decodeURIComponent(redirectUrl);
+                    } else {
+                        // Default redirect to home page
+                        window.location.href = '/';
+                    }
                 }, 1000);
             } else {
                 showNotification(data.error || 'An error occurred', 'error');

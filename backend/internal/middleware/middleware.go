@@ -163,3 +163,42 @@ func OAuthMiddleware(tokenRepo *repository.TokenRepository, userRepo repository.
 		c.Next()
 	}
 }
+
+// FlexibleAuthMiddleware проверяет авторизацию по JWT токену из заголовка или параметров
+// Подходит для OAuth flow где фронтенд передает токен через query params или Authorization header
+func FlexibleAuthMiddleware(jwtService *jwt.Service) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var tokenString string
+
+		// Пытаемся получить токен из заголовка Authorization
+		tokenString = extractTokenFromHeader(c)
+
+		// Если в заголовке нет, пытаемся получить из параметра access_token
+		if tokenString == "" {
+			tokenString = c.Query("access_token")
+		}
+
+		// Если токена нет вообще, не блокируем запрос, но указываем что пользователь не авторизован
+		if tokenString == "" {
+			c.Set("authenticated", false)
+			c.Next()
+			return
+		}
+
+		// Валидируем JWT токен
+		claims, err := jwtService.ValidateToken(tokenString)
+		if err != nil {
+			c.Set("authenticated", false)
+			c.Next()
+			return
+		}
+
+		// Сохраняем информацию о пользователе в контексте
+		c.Set("user_id", claims["sub"])
+		if role, exists := claims["role"]; exists {
+			c.Set("user_role", role)
+		}
+		c.Set("authenticated", true)
+		c.Next()
+	}
+}

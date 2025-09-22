@@ -63,7 +63,9 @@ func SetupRouter(
 		api.GET("/auth/verify-email", authHandler.VerifyEmail)
 
 		// OAuth routes
-		api.GET("/oauth/authorize", middleware.AuthMiddleware(jwtService), oauthHandler.Authorize)
+		api.GET("/oauth/authorize", middleware.FlexibleAuthMiddleware(jwtService), oauthHandler.Authorize)
+		api.POST("/oauth/authorize", middleware.FlexibleAuthMiddleware(jwtService), oauthHandler.AuthorizeApproval)
+		api.GET("/oauth/client", oauthHandler.GetClientInfo)
 		api.POST("/oauth/token", oauthHandler.Token)
 		api.GET("/oauth/userinfo", middleware.OAuthMiddleware(tokenRepo, userRepo), oauthHandler.UserInfo)
 
