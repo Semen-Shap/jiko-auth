@@ -43,7 +43,7 @@ export default function AuthorizePage() {
 
         // Validate required parameters
         if (!clientId || !redirectUri || !responseType) {
-            setError('Неверные параметры OAuth запроса');
+            setError('Invalid OAuth request parameters');
             setLoading(false);
             return;
         }
@@ -57,13 +57,13 @@ export default function AuthorizePage() {
             const response = await fetch(`/api/v1/oauth/client?client_id=${clientId}`);
 
             if (!response.ok) {
-                throw new Error('Не удалось получить информацию о приложении');
+                throw new Error('Failed to retrieve application information');
             }
 
             const data = await response.json();
             setClientInfo(data);
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Произошла ошибка');
+            setError(err instanceof Error ? err.message : 'An error occurred');
         } finally {
             setLoading(false);
         }
@@ -91,7 +91,7 @@ export default function AuthorizePage() {
             });
 
             if (!response.ok) {
-                throw new Error('Ошибка при обработке запроса авторизации');
+                throw new Error('Error processing authorization request');
             }
 
             const data = await response.json();
@@ -101,7 +101,7 @@ export default function AuthorizePage() {
                 window.location.href = data.redirect_url;
             }
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Произошла ошибка');
+            setError(err instanceof Error ? err.message : 'An error occurred');
         } finally {
             setSubmitting(false);
         }
@@ -113,7 +113,7 @@ export default function AuthorizePage() {
                 <Card className="w-full max-w-md">
                     <CardContent className="flex items-center justify-center p-6">
                         <Loader2 className="h-6 w-6 animate-spin mr-2" />
-                        <span>Загрузка...</span>
+                        <span>Loading...</span>
                     </CardContent>
                 </Card>
             </div>
@@ -127,7 +127,7 @@ export default function AuthorizePage() {
                     <CardHeader>
                         <CardTitle className="flex items-center">
                             <XCircle className="h-5 w-5 text-red-500 mr-2" />
-                            Ошибка авторизации
+                            Authorization Error
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -141,7 +141,7 @@ export default function AuthorizePage() {
                             onClick={() => router.push('/')}
                             className="w-full"
                         >
-                            Вернуться на главную
+                            Return to Home
                         </Button>
                     </CardFooter>
                 </Card>
@@ -155,10 +155,10 @@ export default function AuthorizePage() {
                 <CardHeader>
                     <CardTitle className="flex items-center">
                         <Shield className="h-5 w-5 mr-2" />
-                        Запрос доступа
+                        Access Request
                     </CardTitle>
                     <CardDescription>
-                        Приложение запрашивает доступ к вашему аккаунту
+                        The application is requesting access to your account
                     </CardDescription>
                 </CardHeader>
 
@@ -168,26 +168,26 @@ export default function AuthorizePage() {
                             {clientInfo?.name}
                         </h3>
                         <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
-                            Хочет получить доступ к вашему профилю
+                            Wants to access your profile
                         </p>
                     </div>
 
                     <div className="space-y-2">
-                        <p className="text-sm font-medium">Запрашиваемые разрешения:</p>
+                        <p className="text-sm font-medium">Requested permissions:</p>
                         <div className="flex items-center space-x-2">
                             <CheckCircle className="h-4 w-4 text-green-500" />
-                            <span className="text-sm">Доступ к основной информации профиля</span>
+                            <span className="text-sm">Access to basic profile information</span>
                         </div>
                         {scope && scope !== 'read' && (
                             <div className="flex items-center space-x-2">
                                 <CheckCircle className="h-4 w-4 text-green-500" />
-                                <span className="text-sm">Дополнительные разрешения: {scope}</span>
+                                <span className="text-sm">Additional permissions: {scope}</span>
                             </div>
                         )}
                     </div>
 
                     <div className="text-sm text-gray-600 dark:text-gray-400">
-                        <p>Войдя как: <span className="font-medium">{user?.username}</span></p>
+                        <p>Logged in as: <span className="font-medium">{user?.username}</span></p>
                     </div>
                 </CardContent>
 
@@ -199,7 +199,7 @@ export default function AuthorizePage() {
                         className="flex-1"
                     >
                         {submitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                        Отказать
+                        Deny
                     </Button>
                     <Button
                         onClick={() => handleAuthorize('approve')}
@@ -207,7 +207,7 @@ export default function AuthorizePage() {
                         className="flex-1"
                     >
                         {submitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                        Разрешить доступ
+                        Allow Access
                     </Button>
                 </CardFooter>
             </Card>
