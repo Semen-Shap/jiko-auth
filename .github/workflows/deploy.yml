@@ -20,5 +20,5 @@ jobs:
             cd ~/projects/jiko-auth
             docker-compose down
             git pull origin main
-            docker-compose -f docker-compose.prod.yml --env-file ./.prod.env up --build -d
+            docker-compose up --build -d
             docker system prune -f

@@ -1,2 +1,2 @@
 #!/bin/bash
-docker-compose up --build postgres
+docker-compose -f docker-compose.dev.yml up --build

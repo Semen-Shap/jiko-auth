@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"net/http"
 	"regexp"
-	"strings"
 	"time"
 
 	"jiko-auth/internal/config"
@@ -433,14 +432,11 @@ func (s *AuthService) VerifyEmail(c *gin.Context) {
 		return
 	}
 
-	// Перенаправляем на страницу успеха
-	c.Redirect(http.StatusFound, "/verify-email?success=true")
-}
-
-func isAPIRequest(c *gin.Context) bool {
-	return strings.HasPrefix(c.Request.URL.Path, "/api/") ||
-		c.GetHeader("Accept") == "application/json" ||
-		c.GetHeader("Content-Type") == "application/json"
+	// Возвращаем результат
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "Email успешно подтвержден",
+	})
 }
 
 func (s *AuthService) AuthMiddleware() gin.HandlerFunc {
@@ -448,13 +444,7 @@ func (s *AuthService) AuthMiddleware() gin.HandlerFunc {
 		tokenString := extractToken(c)
 		if tokenString == "" {
 
-			if isAPIRequest(c) {
-				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "authorization required"})
-			} else {
-
-				c.Redirect(http.StatusFound, "/login")
-				c.Abort()
-			}
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "authorization required"})
 			return
 		}
 
