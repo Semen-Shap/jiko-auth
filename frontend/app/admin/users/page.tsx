@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useUsers, User } from '@/hooks/useAdmin';
-import { useAdminAuth } from '@/hooks/useAdmin';
+import { useUsers, UpdateUserData } from '@/hooks/use-users';
+import { User } from '@/lib/types/db';
+import { useAuth } from '@/hooks/use-auth';
 import { useNotification } from '@/components/Notification';
 import { CreateUserModal } from './CreateUserModal';
 import { EditUserModal } from './EditUserModal';
@@ -29,7 +30,7 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { useSidebar } from "@/components/ui/sidebar";
 
 export default function Users() {
-	const { token } = useAdminAuth();
+	const { token } = useAuth();
 	const {
 		users,
 		totalUsers,
@@ -74,13 +75,7 @@ export default function Users() {
 		}
 	};
 
-	const handleEditUser = async (userData: {
-		username: string;
-		email: string;
-		password?: string;
-		role: string;
-		email_verified: boolean;
-	}) => {
+	const handleEditUser = async (userData: UpdateUserData) => {
 		if (!editingUser) return false;
 
 		const success = await updateUser(editingUser.id, userData);

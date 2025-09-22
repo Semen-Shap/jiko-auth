@@ -1,6 +1,7 @@
 services:
   postgres:
     image: postgres:15-alpine
+    container_name: postgres
     restart: always
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
@@ -13,12 +14,13 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - bridge
 
   backend:
     build: ./backend
+    container_name: backend
     restart: always
-    ports:
-      - "8085:8080"
     depends_on:
       postgres:
         condition: service_healthy
@@ -39,6 +41,24 @@ services:
       - SMTP_USERNAME=${SMTP_USERNAME}
       - SMTP_PASSWORD=${SMTP_PASSWORD}
       - SMTP_FROM_EMAIL=${SMTP_FROM_EMAIL}
+    networks:
+      - bridge
+
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: frontend
+    restart: always
+    ports:
+      - "3004:3000"
+    networks:
+      - bridge
+
+networks:
+  bridge:
+    driver: bridge
 
 volumes:
   postgres_data:

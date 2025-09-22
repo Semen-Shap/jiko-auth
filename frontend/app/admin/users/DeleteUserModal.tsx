@@ -36,7 +36,7 @@ export function DeleteUserModal({
                 <DialogHeader>
                     <DialogTitle>Delete User</DialogTitle>
                     <DialogDescription>
-                        Are you sure you want to delete user "{user?.username}"? This action cannot be undone.
+                        Are you sure you want to delete user {user?.username}? This action cannot be undone.
                     </DialogDescription>
                 </DialogHeader>
                 <DialogFooter>

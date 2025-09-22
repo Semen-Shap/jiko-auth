@@ -20,26 +20,14 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
+import { UpdateUserData } from '@/hooks/use-users';
+import { User } from '@/lib/types/db';
 
-interface User {
-    id: string;
-    username: string;
-    email: string;
-    role: string;
-    email_verified: boolean;
-    created_at: string;
-}
 
 interface EditUserModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onSubmit: (userData: {
-        username: string;
-        email: string;
-        password?: string;
-        role: string;
-        email_verified: boolean;
-    }) => Promise<boolean>;
+    onSubmit: (userData: UpdateUserData) => Promise<boolean>;
     user: User | null;
     loading?: boolean;
 }
@@ -74,7 +62,7 @@ export function EditUserModal({
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        const userData: any = { ...form };
+        const userData: UpdateUserData = { ...form };
         if (!userData.password) {
             delete userData.password;
         }

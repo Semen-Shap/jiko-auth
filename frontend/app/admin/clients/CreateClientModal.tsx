@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/hooks/use-auth';
 
 interface CreateClientModalProps {
     isOpen: boolean;
@@ -21,7 +21,7 @@ interface CreateClientModalProps {
     onSubmit: (clientData: {
         name: string;
         redirect_uris: string[];
-    }) => Promise<any>;
+    }) => Promise<boolean>;
     loading?: boolean;
 }
 
@@ -49,7 +49,7 @@ export function CreateClientModal({
             name: form.name,
             username: user.username,
             email: user.email || '',
-            password: '', // Password will be generated on backend
+            password: '',
             redirect_uris: form.redirect_uris.split('\n')
                 .map(uri => uri.trim())
                 .filter(uri => uri.length > 0)

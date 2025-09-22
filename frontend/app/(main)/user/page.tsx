@@ -5,12 +5,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/hooks/use-auth';
 import { useEffect, useState } from 'react';
 import { ArrowLeft, User, Mail, Calendar, Shield } from 'lucide-react';
 
 export default function UserProfile() {
-    const { user, isAuthenticated, isLoading, logout, isAdmin } = useAuth();
+    const { user, isAuthenticated, isLoading, isAdmin } = useAuth();
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {

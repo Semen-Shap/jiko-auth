@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useClients, Client } from '@/hooks/useAdmin';
-import { useAdminAuth } from '@/hooks/useAdmin';
+import { useClients } from '@/hooks/use-clients';
+import { Client } from '@/lib/types/db';
+import { useAuth } from '@/hooks/use-auth';
 import { useNotification } from '@/components/Notification';
 import { CreateClientModal } from './CreateClientModal';
 import { DeleteClientModal } from './DeleteClientModal';
@@ -29,7 +30,7 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { useSidebar } from '@/components/ui/sidebar';
 
 export default function Clients() {
-    const { token } = useAdminAuth();
+    const { token } = useAuth();
     const {
         clients,
         totalClients,

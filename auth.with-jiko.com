@@ -21,7 +21,7 @@ server {
     ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
 
     location / {
-        proxy_pass http://localhost:8085;
+        proxy_pass http://localhost:3004;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
     }

@@ -36,8 +36,7 @@ export function useAuth() {
     const logout = () => {
         localStorage.removeItem('access_token');
         localStorage.removeItem('user');
-        localStorage.removeItem('admin_token'); // Also remove admin token if exists
-        localStorage.removeItem('admin_user');
+        
         setUser(null);
         setToken(null);
         setIsAuthenticated(false);

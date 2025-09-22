@@ -36,7 +36,7 @@ export function DeleteClientModal({
                 <DialogHeader>
                     <DialogTitle>Delete Client</DialogTitle>
                     <DialogDescription>
-                        Are you sure you want to delete client "{client?.name}"? This action cannot be undone.
+                        Are you sure you want to delete client {client?.name}? This action cannot be undone.
                     </DialogDescription>
                 </DialogHeader>
                 <DialogFooter>

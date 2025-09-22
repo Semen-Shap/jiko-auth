@@ -1,13 +1,13 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useStats } from '@/hooks/useAdmin';
-import { useAdminAuth } from '@/hooks/useAdmin';
+import { useStats } from '@/hooks/use-stats';
+import { useAuth } from '@/hooks/use-auth';
 import { Users, CheckCircle, Link, TrendingUp } from 'lucide-react';
 import StatCard from './StatCard';
 
 export default function Dashboard() {
-    const { token } = useAdminAuth();
+    const { token } = useAuth();
     const { stats, loading, loadStats } = useStats();
 
     useEffect(() => {
