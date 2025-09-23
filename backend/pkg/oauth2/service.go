@@ -170,3 +170,31 @@ func (s *Service) ExchangeCodeForToken(code, redirectURI, clientID, clientSecret
 func (s *Service) CleanupExpiredTokens() error {
 	return s.tokenRepo.DeleteExpiredTokens()
 }
+
+func (s *Service) IntrospectToken(token string) (map[string]interface{}, error) {
+	// Получаем access token из БД
+	accessToken, err := s.tokenRepo.GetAccessToken(token)
+	if err != nil {
+		// Токен не найден или ошибка
+		return map[string]interface{}{
+			"active": false,
+		}, nil
+	}
+
+	// Проверяем срок действия
+	if time.Now().After(accessToken.ExpiresAt) {
+		return map[string]interface{}{
+			"active": false,
+		}, nil
+	}
+
+	// Возвращаем информацию о токене
+	return map[string]interface{}{
+		"active":     true,
+		"client_id":  accessToken.ClientID.String(),
+		"username":   accessToken.UserID.String(),
+		"scope":      accessToken.Scope,
+		"token_type": "Bearer",
+		"exp":        accessToken.ExpiresAt.Unix(),
+	}, nil
+}

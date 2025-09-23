@@ -479,3 +479,43 @@ func (h *OAuthHandler) UserInfo(c *gin.Context) {
 		"role":     u.Role,
 	})
 }
+
+func (h *OAuthHandler) Introspect(c *gin.Context) {
+	token := c.PostForm("token")
+	tokenTypeHint := c.PostForm("token_type_hint")
+	clientID := c.PostForm("client_id")
+	clientSecret := c.PostForm("client_secret")
+
+	// Проверяем обязательные поля
+	if token == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "token is required"})
+		return
+	}
+
+	// Аутентифицируем клиента
+	if clientID == "" || clientSecret == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "client authentication required"})
+		return
+	}
+
+	isValid, err := h.clientRepo.ValidateClientSecret(clientID, clientSecret)
+	if err != nil || !isValid {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid client credentials"})
+		return
+	}
+
+	// Поддерживаем только access_token
+	if tokenTypeHint != "" && tokenTypeHint != "access_token" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "unsupported token_type_hint"})
+		return
+	}
+
+	// Интроспектируем токен
+	introspection, err := h.oauthService.IntrospectToken(token)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to introspect token"})
+		return
+	}
+
+	c.JSON(http.StatusOK, introspection)
+}

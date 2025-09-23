@@ -67,6 +67,7 @@ func SetupRouter(
 		api.POST("/oauth/authorize", middleware.FlexibleAuthMiddleware(jwtService), oauthHandler.AuthorizeApproval)
 		api.GET("/oauth/client", oauthHandler.GetClientInfo)
 		api.POST("/oauth/token", oauthHandler.Token)
+		api.POST("/oauth/introspect", oauthHandler.Introspect)
 		api.GET("/oauth/userinfo", middleware.OAuthMiddleware(tokenRepo, userRepo), oauthHandler.UserInfo)
 
 		// Admin routes
