@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, Suspense } from 'react';
+import { useEffect, useState, Suspense, useCallback, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
@@ -25,52 +25,112 @@ function AuthorizePageContent() {
     const [error, setError] = useState<string | null>(null);
     const [submitting, setSubmitting] = useState(false);
 
-    // OAuth parameters
-    const clientId = searchParams.get('client_id');
-    const redirectUri = searchParams.get('redirect_uri');
-    const responseType = searchParams.get('response_type');
-    const scope = searchParams.get('scope');
-    const state = searchParams.get('state');
+    // OAuth parameters - memoize to avoid recalculations
+    const oauthParams = useMemo(() => ({
+        clientId: searchParams.get('client_id'),
+        redirectUri: searchParams.get('redirect_uri'),
+        responseType: searchParams.get('response_type'),
+        scope: searchParams.get('scope'),
+        state: searchParams.get('state'),
+    }), [searchParams]);
 
+    // Validate parameters
+    const isValidParams = useMemo(() =>
+        oauthParams.clientId && oauthParams.redirectUri && oauthParams.responseType,
+        [oauthParams]
+    );
+
+    // Fetch client info
+    const fetchClientInfo = useCallback(async () => {
+        if (!oauthParams.clientId) return;
+
+        try {
+            const response = await fetch(`/api/v1/oauth/client?client_id=${oauthParams.clientId}`);
+            if (!response.ok) throw new Error('Failed to retrieve application information');
+            const data = await response.json();
+            setClientInfo(data);
+        } catch (err) {
+            throw err;
+        }
+    }, [oauthParams.clientId]);
+
+    // Check if user has refresh token and auto-approve
+    const checkAndAutoApprove = useCallback(async () => {
+        if (!oauthParams.clientId || !token) return;
+
+        try {
+            const checkResponse = await fetch(`/api/v1/oauth/has_refresh_token?client_id=${oauthParams.clientId}`, {
+                headers: { 'Authorization': `Bearer ${token}` },
+            });
+
+            if (checkResponse.ok) {
+                const checkData = await checkResponse.json();
+                if (checkData.has_refresh_token) {
+                    const approveResponse = await fetch('/api/v1/oauth/authorize', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`,
+                        },
+                        body: JSON.stringify({
+                            client_id: oauthParams.clientId,
+                            redirect_uri: oauthParams.redirectUri,
+                            response_type: oauthParams.responseType,
+                            scope: oauthParams.scope || '',
+                            state: oauthParams.state || '',
+                            action: 'approve',
+                        }),
+                    });
+
+                    if (approveResponse.ok) {
+                        const approveData = await approveResponse.json();
+                        if (approveData.redirect_url) {
+                            window.location.href = approveData.redirect_url;
+                            return true; // Indicate auto-approval happened
+                        }
+                    }
+                }
+            }
+        } catch (err) {
+            // Ignore error, continue to show UI
+        }
+        return false;
+    }, [oauthParams, token]);
+
+    // Initialize data fetching
     useEffect(() => {
         if (authLoading) return;
 
-        // Redirect to login if not authenticated
         if (!isAuthenticated) {
             const currentURL = window.location.href;
             router.push(`/sign-in?redirect=${encodeURIComponent(currentURL)}`);
             return;
         }
 
-        // Validate required parameters
-        if (!clientId || !redirectUri || !responseType) {
+        if (!isValidParams) {
             setError('Invalid OAuth request parameters');
             setLoading(false);
             return;
         }
 
-        // Fetch client information
-        const fetchClientInfo = async () => {
+        const initialize = async () => {
             try {
-                const response = await fetch(`/api/v1/oauth/client?client_id=${clientId}`);
-
-                if (!response.ok) {
-                    throw new Error('Failed to retrieve application information');
+                await fetchClientInfo();
+                const autoApproved = await checkAndAutoApprove();
+                if (!autoApproved) {
+                    setLoading(false);
                 }
-
-                const data = await response.json();
-                setClientInfo(data);
             } catch (err) {
                 setError(err instanceof Error ? err.message : 'An error occurred');
-            } finally {
                 setLoading(false);
             }
         };
 
-        fetchClientInfo();
-    }, [authLoading, isAuthenticated, clientId, redirectUri, responseType, router]);
+        initialize();
+    }, [authLoading, isAuthenticated, isValidParams, fetchClientInfo, checkAndAutoApprove, router]);
 
-    const handleAuthorize = async (action: 'approve' | 'deny') => {
+    // Handle authorization action
+    const handleAuthorize = useCallback(async (action: 'approve' | 'deny') => {
         setSubmitting(true);
         setError(null);
 
@@ -82,22 +142,18 @@ function AuthorizePageContent() {
                     'Authorization': `Bearer ${token}`,
                 },
                 body: JSON.stringify({
-                    client_id: clientId,
-                    redirect_uri: redirectUri,
-                    response_type: responseType,
-                    scope: scope || '',
-                    state: state || '',
-                    action: action,
+                    client_id: oauthParams.clientId,
+                    redirect_uri: oauthParams.redirectUri,
+                    response_type: oauthParams.responseType,
+                    scope: oauthParams.scope || '',
+                    state: oauthParams.state || '',
+                    action,
                 }),
             });
 
-            if (!response.ok) {
-                throw new Error('Error processing authorization request');
-            }
+            if (!response.ok) throw new Error('Error processing authorization request');
 
             const data = await response.json();
-
-            // Redirect to the client application
             if (data.redirect_url) {
                 window.location.href = data.redirect_url;
             }
@@ -106,7 +162,7 @@ function AuthorizePageContent() {
         } finally {
             setSubmitting(false);
         }
-    };
+    }, [oauthParams, token]);
 
     if (authLoading || loading) {
         return (
@@ -179,10 +235,10 @@ function AuthorizePageContent() {
                             <CheckCircle className="h-4 w-4 text-green-500" />
                             <span className="text-sm">Access to basic profile information</span>
                         </div>
-                        {scope && scope !== 'read' && (
+                        {oauthParams.scope && oauthParams.scope !== 'read' && (
                             <div className="flex items-center space-x-2">
                                 <CheckCircle className="h-4 w-4 text-green-500" />
-                                <span className="text-sm">Additional permissions: {scope}</span>
+                                <span className="text-sm">Additional permissions: {oauthParams.scope}</span>
                             </div>
                         )}
                     </div>

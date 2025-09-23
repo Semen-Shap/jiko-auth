@@ -20,6 +20,7 @@ type TokenRepository interface {
 	GetRefreshToken(token string) (*models.RefreshToken, error)
 	GetAccessToken(token string) (*models.AccessToken, error)
 	DeleteExpiredTokens() error
+	HasRefreshTokenForUserAndClient(userID, clientID string) (bool, error)
 }
 
 type ClientRepository interface {
@@ -197,4 +198,8 @@ func (s *Service) IntrospectToken(token string) (map[string]interface{}, error) 
 		"token_type": "Bearer",
 		"exp":        accessToken.ExpiresAt.Unix(),
 	}, nil
+}
+
+func (s *Service) HasRefreshToken(userID, clientID string) (bool, error) {
+	return s.tokenRepo.HasRefreshTokenForUserAndClient(userID, clientID)
 }

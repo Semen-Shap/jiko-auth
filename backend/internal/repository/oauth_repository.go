@@ -210,3 +210,21 @@ func (r *TokenRepository) DeleteExpiredTokens() error {
 	}
 	return nil
 }
+
+func (r *TokenRepository) HasRefreshTokenForUserAndClient(userID, clientID string) (bool, error) {
+	userUUID, err := uuid.Parse(userID)
+	if err != nil {
+		return false, err
+	}
+
+	clientUUID, err := uuid.Parse(clientID)
+	if err != nil {
+		return false, err
+	}
+
+	var count int64
+	err = r.db.Model(&models.RefreshToken{}).
+		Where("user_id = ? AND client_id = ? AND expires_at > ?", userUUID, clientUUID, time.Now()).
+		Count(&count).Error
+	return count > 0, err
+}

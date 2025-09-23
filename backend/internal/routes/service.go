@@ -66,6 +66,7 @@ func SetupRouter(
 		api.GET("/oauth/authorize", middleware.FlexibleAuthMiddleware(jwtService), oauthHandler.Authorize)
 		api.POST("/oauth/authorize", middleware.FlexibleAuthMiddleware(jwtService), oauthHandler.AuthorizeApproval)
 		api.GET("/oauth/client", oauthHandler.GetClientInfo)
+		api.GET("/oauth/has_refresh_token", middleware.FlexibleAuthMiddleware(jwtService), oauthHandler.HasRefreshToken)
 		api.POST("/oauth/token", oauthHandler.Token)
 		api.POST("/oauth/introspect", oauthHandler.Introspect)
 		api.GET("/oauth/userinfo", middleware.OAuthMiddleware(tokenRepo, userRepo), oauthHandler.UserInfo)
