@@ -6,34 +6,10 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/use-auth';
-import { useEffect, useState } from 'react';
 import { ArrowLeft, User, Mail, Calendar, Shield } from 'lucide-react';
 
 export default function UserProfile() {
-    const { user, isAuthenticated, isLoading, isAdmin } = useAuth();
-    const [mounted, setMounted] = useState(false);
-
-    useEffect(() => {
-        setMounted(true);
-    }, []);
-
-    useEffect(() => {
-        if (mounted && !isLoading && !isAuthenticated) {
-            window.location.href = '/sign-in';
-        }
-    }, [mounted, isLoading, isAuthenticated]);
-
-    if (!mounted || isLoading) {
-        return (
-            <div className="min-h-[calc(100vh-50px)] flex items-center justify-center">
-                <div>Loading...</div>
-            </div>
-        );
-    }
-
-    if (!isAuthenticated || !user) {
-        return null; // Will redirect in useEffect
-    }
+    const { user, isAdmin } = useAuth();
 
     return (
         <div className="w-full">
@@ -42,7 +18,7 @@ export default function UserProfile() {
                 <div className="max-w-2xl mx-auto">
                     {/* Breadcrumb */}
                     <div className="mb-6">
-                        <Link href="/">
+                        <Link href="/welcome">
                             <Button variant="ghost" size="sm" className="mb-4">
                                 <ArrowLeft className="h-4 w-4 mr-2" />
                                 Back to Home
@@ -55,13 +31,13 @@ export default function UserProfile() {
                         <CardHeader className="text-center">
                             <div className="flex justify-center mb-4">
                                 <Avatar className="h-24 w-24">
-                                    <AvatarImage src="" alt={user.username} />
+                                    <AvatarImage src="" alt={user?.username} />
                                     <AvatarFallback className="text-2xl bg-primary text-primary-foreground">
-                                        {user.username.charAt(0).toUpperCase()}
+                                        {user?.username.charAt(0).toUpperCase()}
                                     </AvatarFallback>
                                 </Avatar>
                             </div>
-                            <CardTitle className="text-3xl font-bold">{user.username}</CardTitle>
+                            <CardTitle className="text-3xl font-bold">{user?.username}</CardTitle>
                             <CardDescription className="text-lg">
                                 {isAdmin && <Badge variant="secondary" className="mr-2">Administrator</Badge>}
                                 Member since {new Date().getFullYear()}
@@ -83,14 +59,14 @@ export default function UserProfile() {
                                     <User className="h-4 w-4 text-muted-foreground" />
                                     <div>
                                         <p className="text-sm text-muted-foreground">Username</p>
-                                        <p className="font-medium">{user.username}</p>
+                                        <p className="font-medium">{user?.username}</p>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-3">
                                     <Mail className="h-4 w-4 text-muted-foreground" />
                                     <div>
                                         <p className="text-sm text-muted-foreground">Email</p>
-                                        <p className="font-medium">{user.email || 'Not provided'}</p>
+                                        <p className="font-medium">{user?.email || 'Not provided'}</p>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-3">

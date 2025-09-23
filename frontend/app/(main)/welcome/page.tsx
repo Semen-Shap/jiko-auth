@@ -4,33 +4,9 @@ import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/use-auth';
-import { useEffect, useState } from 'react';
 
 export default function Home() {
-    const { user, isAuthenticated, isLoading, logout, isAdmin } = useAuth();
-    const [mounted, setMounted] = useState(false);
-
-    useEffect(() => {
-        setMounted(true);
-    }, []);
-
-    useEffect(() => {
-        if (mounted && !isLoading && !isAuthenticated) {
-            window.location.href = '/';
-        }
-    }, [mounted, isLoading, isAuthenticated]);
-
-    if (!mounted || isLoading) {
-        return (
-            <div className="min-h-[calc(100vh-50px)] flex items-center justify-center">
-                <div>Loading...</div>
-            </div>
-        );
-    }
-
-    if (!isAuthenticated) {
-        return null; // Will redirect in useEffect
-    }
+    const { user, logout, isAdmin } = useAuth();
 
     return (
         <div className="min-h-[calc(100vh-50px)] flex items-center justify-center px-5">

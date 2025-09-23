@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import AdminSidebar from '@/components/AdminSidebar';
 import {
     SidebarInset,
@@ -8,40 +8,32 @@ import {
     SidebarTrigger,
 } from '@/components/ui/sidebar';
 import { Separator } from '@/components/ui/separator';
+import { useAuth } from '@/hooks/use-auth';
+import Loading from '@/components/loading';
 
 interface AdminLayoutProps {
     children: React.ReactNode;
 }
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
-    const [token, setToken] = useState<string | null>(null);
+    const { isAuthenticated, isLoading, isAdmin } = useAuth();
 
     useEffect(() => {
-        const adminToken = localStorage.getItem('access_token');
-        const storedUser = localStorage.getItem('user');
-
-        if (!adminToken || !storedUser) {
-            window.location.href = '/';
-            return;
+        if (!isLoading && (!isAuthenticated || !isAdmin)) {
+            window.location.href = '/access-denied';
         }
+    }, [isAuthenticated, isLoading, isAdmin]);
 
-        try {
-            const user = JSON.parse(storedUser);
-            if (user.role !== 'admin') {
-                window.location.href = '/';
-                return;
-            }
-        } catch (error) {
-            console.error('Error parsing user data:', error);
-            window.location.href = '/';
-            return;
-        }
+    if (isLoading) {
+        return (
+            <div className='flex items-center justify-center min-h-screen'>
+                <Loading />
+            </div>
+        );
+    }
 
-        setToken(adminToken);
-    }, []);
-
-    if (!token) {
-        return <div>Loading...</div>;
+    if (!isAuthenticated || !isAdmin) {
+        return null;
     }
 
     return (
