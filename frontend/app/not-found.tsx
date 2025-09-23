@@ -1,6 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FileQuestion } from "lucide-react";
+import Link from "next/link";
 
 export default function NotFound() {
     return (
@@ -17,7 +18,7 @@ export default function NotFound() {
                         The page you are looking for does not exist.
                     </CardDescription>
                     <Button asChild>
-                        <a href="/">Go Home</a>
+                        <Link href="/">Go Home</Link>
                     </Button>
                 </CardContent>
             </Card>

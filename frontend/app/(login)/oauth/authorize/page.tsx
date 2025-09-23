@@ -91,7 +91,7 @@ function AuthorizePageContent() {
                     }
                 }
             }
-        } catch (err) {
+        } catch {
             // Ignore error, continue to show UI
         }
         return false;
