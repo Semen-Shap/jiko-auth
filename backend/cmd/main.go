@@ -55,7 +55,7 @@ func main() {
 		geoLocationService,
 		notificationService,
 	)
-	oauthHandler := handlers.NewOAuthHandler(oauthService, clientRepo, userRepo)
+	oauthHandler := handlers.NewOAuthHandler(oauthService, clientRepo, userRepo, tokenRepo)
 	codesHandler := handlers.NewCodesHandler(clientRepo)
 	adminHandler := handlers.NewAdminHandler(userRepo, clientRepo)
 

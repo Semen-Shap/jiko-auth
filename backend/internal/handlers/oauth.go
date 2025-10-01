@@ -19,13 +19,15 @@ type OAuthHandler struct {
 	oauthService *oauth2.Service
 	clientRepo   *repository.OAuthClientRepository
 	userRepo     repository.UserRepository
+	tokenRepo    *repository.TokenRepository
 }
 
-func NewOAuthHandler(oauthService *oauth2.Service, clientRepo *repository.OAuthClientRepository, userRepo repository.UserRepository) *OAuthHandler {
+func NewOAuthHandler(oauthService *oauth2.Service, clientRepo *repository.OAuthClientRepository, userRepo repository.UserRepository, tokenRepo *repository.TokenRepository) *OAuthHandler {
 	return &OAuthHandler{
 		oauthService: oauthService,
 		clientRepo:   clientRepo,
 		userRepo:     userRepo,
+		tokenRepo:    tokenRepo,
 	}
 }
 
@@ -528,7 +530,7 @@ func (h *OAuthHandler) HasRefreshToken(c *gin.Context) {
 		return
 	}
 
-	has, err := h.oauthService.HasRefreshToken(userID.(string), clientID)
+	has, err := h.tokenRepo.HasRefreshTokenForUserAndClient(userID.(string), clientID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
