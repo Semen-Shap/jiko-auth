@@ -1,5 +1,6 @@
 'use client';
 
+import { Suspense } from 'react';
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useSignIn } from '@/hooks/use-sign-in';
 
-export default function SignIn() {
+function SignInContent() {
 	const { form, errors, isLoading, updateForm, handleSubmit } = useSignIn();
 
 	return (
@@ -72,5 +73,13 @@ export default function SignIn() {
 				</CardContent>
 			</Card>
 		</div>
+	);
+}
+
+export default function SignIn() {
+	return (
+		<Suspense fallback={null}>
+			<SignInContent />
+		</Suspense>
 	);
 }
