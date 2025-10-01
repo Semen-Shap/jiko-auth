@@ -7,9 +7,7 @@ import StatCard from './StatCard';
 export default function Dashboard() {
 	const { stats, loading } = useStats();
 
-	if (loading) {
-		return <div className="text-center py-8">Loading...</div>;
-	}
+	if (loading) return null;
 
 	return (
 		<div>

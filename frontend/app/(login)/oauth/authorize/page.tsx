@@ -1,185 +1,23 @@
 "use client";
 
-import { useEffect, useState, Suspense, useCallback, useMemo } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
+import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, Shield, CheckCircle, XCircle } from 'lucide-react';
 import Fallback from '@/components/fallback';
-
-interface ClientInfo {
-	client_id: string;
-	name: string;
-	created_at: string;
-}
+import { useOAuth } from '@/hooks/use-oauth';
 
 function AuthorizePageContent() {
 	const router = useRouter();
-	const searchParams = useSearchParams();
-	const { data: session, status: authStatus } = useSession();
-	const token = (session as any)?.accessToken;
+	const { data: session } = useSession();
 	const user = session?.user;
-	const isAuthenticated = !!session;
-	const authLoading = authStatus === 'loading';
 
-	const [clientInfo, setClientInfo] = useState<ClientInfo | null>(null);
-	const [loading, setLoading] = useState(true);
-	const [error, setError] = useState<string | null>(null);
-	const [submitting, setSubmitting] = useState(false);
+	const { clientInfo, loading, error, submitting, oauthParams, handleAuthorize } = useOAuth();
 
-	// OAuth parameters - memoize to avoid recalculations
-	const oauthParams = useMemo(() => ({
-		clientId: searchParams.get('client_id'),
-		redirectUri: searchParams.get('redirect_uri'),
-		responseType: searchParams.get('response_type'),
-		scope: searchParams.get('scope'),
-		state: searchParams.get('state'),
-	}), [searchParams]);
-
-	// Validate parameters
-	const isValidParams = useMemo(() =>
-		oauthParams.clientId && oauthParams.redirectUri && oauthParams.responseType,
-		[oauthParams]
-	);
-
-	// Fetch client info
-	const fetchClientInfo = useCallback(async () => {
-		if (!oauthParams.clientId) return;
-
-		try {
-			const response = await fetch(`/api/v1/oauth/client?client_id=${oauthParams.clientId}`);
-			if (!response.ok) throw new Error('Failed to retrieve application information');
-			const data = await response.json();
-			setClientInfo(data);
-		} catch (err) {
-			throw err;
-		}
-	}, [oauthParams.clientId]);
-
-	// Check if user has refresh token and auto-approve
-	const checkAndAutoApprove = useCallback(async () => {
-		if (!oauthParams.clientId || !token) return;
-
-		try {
-			const checkResponse = await fetch(`/api/v1/oauth/has_refresh_token?client_id=${oauthParams.clientId}`, {
-				headers: { 'Authorization': `Bearer ${token}` },
-			});
-
-			if (checkResponse.ok) {
-				const checkData = await checkResponse.json();
-				if (checkData.has_refresh_token) {
-					const approveResponse = await fetch('/api/v1/oauth/authorize', {
-						method: 'POST',
-						headers: {
-							'Content-Type': 'application/json',
-							'Authorization': `Bearer ${token}`,
-						},
-						body: JSON.stringify({
-							client_id: oauthParams.clientId,
-							redirect_uri: oauthParams.redirectUri,
-							response_type: oauthParams.responseType,
-							scope: oauthParams.scope || '',
-							state: oauthParams.state || '',
-							action: 'approve',
-						}),
-					});
-
-					if (approveResponse.ok) {
-						const approveData = await approveResponse.json();
-						if (approveData.redirect_url) {
-							window.location.href = approveData.redirect_url;
-							return true; // Indicate auto-approval happened
-						}
-					}
-				}
-			}
-		} catch {
-			// Ignore error, continue to show UI
-		}
-		return false;
-	}, [oauthParams, token]);
-
-	// Initialize data fetching
-	useEffect(() => {
-		if (authLoading) return;
-
-		if (!isAuthenticated) {
-			const currentURL = window.location.href;
-			router.push(`/sign-in?redirect=${encodeURIComponent(currentURL)}`);
-			return;
-		}
-
-		if (!isValidParams) {
-			setError('Invalid OAuth request parameters');
-			setLoading(false);
-			return;
-		}
-
-		const initialize = async () => {
-			try {
-				await fetchClientInfo();
-				const autoApproved = await checkAndAutoApprove();
-				if (!autoApproved) {
-					setLoading(false);
-				}
-			} catch (err) {
-				setError(err instanceof Error ? err.message : 'An error occurred');
-				setLoading(false);
-			}
-		};
-
-		initialize();
-	}, [authLoading, isAuthenticated, isValidParams, fetchClientInfo, checkAndAutoApprove, router]);
-
-	// Handle authorization action
-	const handleAuthorize = useCallback(async (action: 'approve' | 'deny') => {
-		setSubmitting(true);
-		setError(null);
-
-		try {
-			const response = await fetch('/api/v1/oauth/authorize', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					'Authorization': `Bearer ${token}`,
-				},
-				body: JSON.stringify({
-					client_id: oauthParams.clientId,
-					redirect_uri: oauthParams.redirectUri,
-					response_type: oauthParams.responseType,
-					scope: oauthParams.scope || '',
-					state: oauthParams.state || '',
-					action,
-				}),
-			});
-
-			if (!response.ok) throw new Error('Error processing authorization request');
-
-			const data = await response.json();
-			if (data.redirect_url) {
-				window.location.href = data.redirect_url;
-			}
-		} catch (err) {
-			setError(err instanceof Error ? err.message : 'An error occurred');
-		} finally {
-			setSubmitting(false);
-		}
-	}, [oauthParams, token]);
-
-	if (authLoading || loading) {
-		return (
-			<div className="h-full flex items-center justify-center">
-				<Card className="w-full max-w-md">
-					<CardContent className="flex items-center justify-center p-6">
-						<Loader2 className="h-6 w-6 animate-spin mr-2" />
-						<span>Loading...</span>
-					</CardContent>
-				</Card>
-			</div>
-		);
-	}
+	if (loading) return null;
 
 	if (error) {
 		return (

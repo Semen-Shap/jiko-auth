@@ -4,33 +4,11 @@ import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useSession } from 'next-auth/react';
-import { useEffect, useState } from 'react';
 
 export default function Welcome() {
-	const { data: session, status } = useSession();
-	const [mounted, setMounted] = useState(false);
+	const { status } = useSession();
 
-	useEffect(() => {
-		setMounted(true);
-	}, []);
-
-	useEffect(() => {
-		if (mounted && status !== 'loading' && session) {
-			window.location.href = '/welcome';
-		}
-	}, [mounted, status, session]);
-
-	if (!mounted || status === 'loading') {
-		return (
-			<div className="h-full flex items-center justify-center">
-				<div>Loading...</div>
-			</div>
-		);
-	}
-
-	if (session) {
-		return null; // Will redirect in useEffect
-	}
+	if (status === 'loading') return null;
 
 	return (
 		<main className="min-h-screen flex flex-col items-center justify-center">
