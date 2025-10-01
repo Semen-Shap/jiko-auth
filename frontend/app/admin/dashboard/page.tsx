@@ -1,21 +1,11 @@
 'use client';
 
-import { useEffect } from 'react';
 import { useStats } from '@/hooks/use-stats';
-import { useSession } from 'next-auth/react';
 import { Users, CheckCircle, Link, TrendingUp } from 'lucide-react';
 import StatCard from './StatCard';
 
 export default function Dashboard() {
-	const { data: session } = useSession();
-	const token = (session as any)?.accessToken;
-	const { stats, loading, loadStats } = useStats();
-
-	useEffect(() => {
-		if (token) {
-			loadStats(token);
-		}
-	}, [token, loadStats]);
+	const { stats, loading } = useStats();
 
 	if (loading) {
 		return <div className="text-center py-8">Loading...</div>;

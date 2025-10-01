@@ -1,9 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useUsers, UpdateUserData } from '@/hooks/use-users';
 import { User } from '@/lib/types/db';
-import { useSession } from 'next-auth/react';
 import { useNotification } from '@/components/Notification';
 import { CreateUserModal } from './CreateUserModal';
 import { EditUserModal } from './EditUserModal';
@@ -30,8 +29,6 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { useSidebar } from "@/components/ui/sidebar";
 
 export default function Users() {
-	const { data: session } = useSession();
-	const token = (session as any)?.accessToken;
 	const {
 		users,
 		totalUsers,
@@ -42,7 +39,7 @@ export default function Users() {
 		createUser,
 		updateUser,
 		deleteUser
-	} = useUsers(token);
+	} = useUsers();
 	const { showNotification, NotificationComponent } = useNotification();
 
 	// Modal states
@@ -51,12 +48,6 @@ export default function Users() {
 	const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 	const [editingUser, setEditingUser] = useState<User | null>(null);
 	const [userToDelete, setUserToDelete] = useState<{ id: string; username: string } | null>(null);
-
-	useEffect(() => {
-		if (token) {
-			loadUsers();
-		}
-	}, [token, loadUsers]);
 
 	const handleCreateUser = async (userData: {
 		username: string;

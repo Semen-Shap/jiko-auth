@@ -1,7 +1,7 @@
-import NextAuth from "next-auth";
+import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 
-export const { handlers, auth, signIn, signOut } = NextAuth({
+export const authOptions: NextAuthOptions = {
 	providers: [
 		CredentialsProvider({
 			name: "credentials",
@@ -59,11 +59,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 				token.expiresAt = user.expiresAt;
 			}
 
-			// Check if token is expired
 			if (token.expiresAt && Date.now() > (token.expiresAt as number) * 1000) {
-				// Token expired, you might want to refresh it here
-				// For now, just return null to force re-login
-				return null;
+				return token;
 			}
 
 			return token;
@@ -81,9 +78,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 	},
 	pages: {
 		signIn: "/sign-in",
+		error: "/error",
+		signOut: "/sign-in",
 	},
 	session: {
 		strategy: "jwt",
 	},
-	secret: process.env.NEXTAUTH_SECRET || "your-secret-key",
-});
+	secret: process.env.NEXTAUTH_SECRET,
+};
