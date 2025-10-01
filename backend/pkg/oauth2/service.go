@@ -26,6 +26,7 @@ type TokenRepository interface {
 	GetRefreshToken(token string) (*models.RefreshToken, error)
 	GetAccessToken(token string) (*models.AccessToken, error)
 	DeleteExpiredTokens() error
+	HasRefreshTokenForUserAndClient(userID, clientID string) (bool, error)
 }
 
 type ClientRepository interface {
@@ -197,12 +198,13 @@ func (s *Service) IntrospectToken(token string) (map[string]interface{}, error) 
 	return map[string]interface{}{
 		"active":     true,
 		"client_id":  accessToken.ClientID.String(),
-		"username":   accessToken.UserID.String(),
+		"user_id":    accessToken.UserID.String(),
 		"scope":      accessToken.Scope,
 		"token_type": "Bearer",
 		"exp":        accessToken.ExpiresAt.Unix(),
 	}, nil
 }
+
 
 func (s *Service) GenerateAuthorizationCodeWithPKCE(clientID, userID, redirectURI, scope, codeChallenge, codeChallengeMethod string) (string, error) {
 	code, err := utils.GenerateRandomString(32)
@@ -267,4 +269,5 @@ func generateCryptoSecureToken(length int) (string, error) {
 		return "", err
 	}
 	return base64.URLEncoding.EncodeToString(bytes), nil
+
 }

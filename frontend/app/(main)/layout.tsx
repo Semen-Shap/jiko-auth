@@ -1,16 +1,23 @@
+"use client";
+
 import { Header } from "@/components/Header";
+import { useSession } from 'next-auth/react';
 
 export default function MainLayout({
-    children,
+	children,
 }: Readonly<{
-    children: React.ReactNode;
+	children: React.ReactNode;
 }>) {
-    return (
-        <div className="min-h-screen flex flex-col">
-            <Header />
-            <main className="flex-1">
-                {children}
-            </main>
-        </div>
-    );
+	const { status } = useSession();
+
+	if (status === 'loading') return null;
+
+	return (
+		<div className="min-h-screen flex flex-col">
+			<Header />
+			<main className="flex-1">
+				{children}
+			</main>
+		</div>
+	);
 }

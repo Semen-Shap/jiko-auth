@@ -514,3 +514,25 @@ func (h *OAuthHandler) Introspect(c *gin.Context) {
 
 	c.JSON(http.StatusOK, introspection)
 }
+
+func (h *OAuthHandler) HasRefreshToken(c *gin.Context) {
+	clientID := c.Query("client_id")
+	if clientID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "client_id is required"})
+		return
+	}
+
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "not authenticated"})
+		return
+	}
+
+	has, err := h.oauthService.HasRefreshToken(userID.(string), clientID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"has_refresh_token": has})
+}

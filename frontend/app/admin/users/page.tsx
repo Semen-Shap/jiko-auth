@@ -1,10 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useUsers, UpdateUserData } from '@/hooks/use-users';
-import { User } from '@/lib/types/db';
-import { useAuth } from '@/hooks/use-auth';
-import { useNotification } from '@/components/Notification';
+import { User } from '@/types/db';
+import { useNotification } from '@/components/NotificationProvider';
 import { CreateUserModal } from './CreateUserModal';
 import { EditUserModal } from './EditUserModal';
 import { DeleteUserModal } from './DeleteUserModal';
@@ -30,7 +29,6 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { useSidebar } from "@/components/ui/sidebar";
 
 export default function Users() {
-	const { token } = useAuth();
 	const {
 		users,
 		totalUsers,
@@ -41,8 +39,8 @@ export default function Users() {
 		createUser,
 		updateUser,
 		deleteUser
-	} = useUsers(token);
-	const { showNotification, NotificationComponent } = useNotification();
+	} = useUsers();
+	const { showNotification } = useNotification();
 
 	// Modal states
 	const [showCreateModal, setShowCreateModal] = useState(false);
@@ -50,12 +48,6 @@ export default function Users() {
 	const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 	const [editingUser, setEditingUser] = useState<User | null>(null);
 	const [userToDelete, setUserToDelete] = useState<{ id: string; username: string } | null>(null);
-
-	useEffect(() => {
-		if (token) {
-			loadUsers();
-		}
-	}, [token, loadUsers]);
 
 	const handleCreateUser = async (userData: {
 		username: string;
@@ -256,8 +248,6 @@ export default function Users() {
 				user={userToDelete}
 				loading={loading}
 			/>
-
-			{NotificationComponent}
 		</div>
 	);
 }

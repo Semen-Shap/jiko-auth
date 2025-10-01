@@ -211,6 +211,7 @@ func (r *TokenRepository) DeleteExpiredTokens() error {
 	return nil
 }
 
+
 // internal/repository/oauth_repository.go
 func (r *AuthCodeRepository) SaveAuthorizationCodeWithPKCE(code, clientID, userID, redirectURI, scope string, expiresAt time.Time, codeChallenge, codeChallengeMethod string) error {
 	clientUUID, err := uuid.Parse(clientID)
@@ -243,4 +244,5 @@ func (r *AuthCodeRepository) GetAuthorizationCodeWithPKCE(code string) (*models.
 	var authCode models.AuthorizationCode
 	err := r.db.First(&authCode, "code = ?", code).Error
 	return &authCode, err
+
 }

@@ -1,225 +1,122 @@
 "use client";
 
-import { useEffect, useState, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useAuth } from '@/hooks/use-auth';
+import { Suspense } from 'react';
+import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, Shield, CheckCircle, XCircle } from 'lucide-react';
-import Fallback from '@/components/fallback';
+import { useOAuth } from '@/hooks/use-oauth';
 
-interface ClientInfo {
-    client_id: string;
-    name: string;
-    created_at: string;
-}
+function AuthorizeContent() {
+	const router = useRouter();
+	const { data: session } = useSession();
+	const user = session?.user;
 
-function AuthorizePageContent() {
-    const router = useRouter();
-    const searchParams = useSearchParams();
-    const { user, token, isAuthenticated, isLoading: authLoading } = useAuth();
+	const { clientInfo, loading, error, submitting, oauthParams, handleAuthorize } = useOAuth();
 
-    const [clientInfo, setClientInfo] = useState<ClientInfo | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-    const [submitting, setSubmitting] = useState(false);
+	if (loading) return null;
 
-    // OAuth parameters
-    const clientId = searchParams.get('client_id');
-    const redirectUri = searchParams.get('redirect_uri');
-    const responseType = searchParams.get('response_type');
-    const scope = searchParams.get('scope');
-    const state = searchParams.get('state');
+	if (error) {
+		return (
+			<div className="h-full flex items-center justify-center">
+				<Card className="w-full max-w-md">
+					<CardHeader>
+						<CardTitle className="flex items-center">
+							<XCircle className="h-5 w-5 text-destructive mr-2" />
+							Authorization Error
+						</CardTitle>
+					</CardHeader>
+					<CardContent>
+						<Alert>
+							<AlertDescription>{error}</AlertDescription>
+						</Alert>
+					</CardContent>
+					<CardFooter>
+						<Button
+							variant="outline"
+							onClick={() => router.push('/')}
+							className="w-full"
+						>
+							Return to Home
+						</Button>
+					</CardFooter>
+				</Card>
+			</div>
+		);
+	}
 
-    useEffect(() => {
-        if (authLoading) return;
+	return (
+		<div className="h-full flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+			<Card className="w-full max-w-md">
+				<CardHeader>
+					<CardTitle className="flex items-center">
+						<Shield className="h-5 w-5 mr-2" />
+						Access Request
+					</CardTitle>
+					<CardDescription>
+						The application is requesting access to your account
+					</CardDescription>
+				</CardHeader>
 
-        // Redirect to login if not authenticated
-        if (!isAuthenticated) {
-            const currentURL = window.location.href;
-            router.push(`/sign-in?redirect=${encodeURIComponent(currentURL)}`);
-            return;
-        }
+				<CardContent className="space-y-4">
+					<div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+						<h3 className="font-medium text-blue-900 dark:text-blue-100">
+							{clientInfo?.name}
+						</h3>
+						<p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
+							Wants to access your profile
+						</p>
+					</div>
 
-        // Validate required parameters
-        if (!clientId || !redirectUri || !responseType) {
-            setError('Invalid OAuth request parameters');
-            setLoading(false);
-            return;
-        }
+					<div className="space-y-2">
+						<p className="text-sm font-medium">Requested permissions:</p>
+						<div className="flex items-center space-x-2">
+							<CheckCircle className="h-4 w-4 text-green-500" />
+							<span className="text-sm">Access to basic profile information</span>
+						</div>
+						{oauthParams.scope && oauthParams.scope !== 'read' && (
+							<div className="flex items-center space-x-2">
+								<CheckCircle className="h-4 w-4 text-green-500" />
+								<span className="text-sm">Additional permissions: {oauthParams.scope}</span>
+							</div>
+						)}
+					</div>
 
-        // Fetch client information
-        const fetchClientInfo = async () => {
-            try {
-                const response = await fetch(`/api/v1/oauth/client?client_id=${clientId}`);
+					<div className="text-sm text-gray-600 dark:text-gray-400">
+						<p>Logged in as: <span className="font-medium">{user?.name}</span></p>
+					</div>
+				</CardContent>
 
-                if (!response.ok) {
-                    throw new Error('Failed to retrieve application information');
-                }
-
-                const data = await response.json();
-                setClientInfo(data);
-            } catch (err) {
-                setError(err instanceof Error ? err.message : 'An error occurred');
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchClientInfo();
-    }, [authLoading, isAuthenticated, clientId, redirectUri, responseType, router]);
-
-    const handleAuthorize = async (action: 'approve' | 'deny') => {
-        setSubmitting(true);
-        setError(null);
-
-        try {
-            const response = await fetch('/api/v1/oauth/authorize', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`,
-                },
-                body: JSON.stringify({
-                    client_id: clientId,
-                    redirect_uri: redirectUri,
-                    response_type: responseType,
-                    scope: scope || '',
-                    state: state || '',
-                    action: action,
-                }),
-            });
-
-            if (!response.ok) {
-                throw new Error('Error processing authorization request');
-            }
-
-            const data = await response.json();
-
-            // Redirect to the client application
-            if (data.redirect_url) {
-                window.location.href = data.redirect_url;
-            }
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'An error occurred');
-        } finally {
-            setSubmitting(false);
-        }
-    };
-
-    if (authLoading || loading) {
-        return (
-            <div className="h-full flex items-center justify-center">
-                <Card className="w-full max-w-md">
-                    <CardContent className="flex items-center justify-center p-6">
-                        <Loader2 className="h-6 w-6 animate-spin mr-2" />
-                        <span>Loading...</span>
-                    </CardContent>
-                </Card>
-            </div>
-        );
-    }
-
-    if (error) {
-        return (
-            <div className="h-full flex items-center justify-center">
-                <Card className="w-full max-w-md">
-                    <CardHeader>
-                        <CardTitle className="flex items-center">
-                            <XCircle className="h-5 w-5 text-red-500 mr-2" />
-                            Authorization Error
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <Alert>
-                            <AlertDescription>{error}</AlertDescription>
-                        </Alert>
-                    </CardContent>
-                    <CardFooter>
-                        <Button
-                            variant="outline"
-                            onClick={() => router.push('/')}
-                            className="w-full"
-                        >
-                            Return to Home
-                        </Button>
-                    </CardFooter>
-                </Card>
-            </div>
-        );
-    }
-
-    return (
-        <div className="h-full flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-            <Card className="w-full max-w-md">
-                <CardHeader>
-                    <CardTitle className="flex items-center">
-                        <Shield className="h-5 w-5 mr-2" />
-                        Access Request
-                    </CardTitle>
-                    <CardDescription>
-                        The application is requesting access to your account
-                    </CardDescription>
-                </CardHeader>
-
-                <CardContent className="space-y-4">
-                    <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                        <h3 className="font-medium text-blue-900 dark:text-blue-100">
-                            {clientInfo?.name}
-                        </h3>
-                        <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
-                            Wants to access your profile
-                        </p>
-                    </div>
-
-                    <div className="space-y-2">
-                        <p className="text-sm font-medium">Requested permissions:</p>
-                        <div className="flex items-center space-x-2">
-                            <CheckCircle className="h-4 w-4 text-green-500" />
-                            <span className="text-sm">Access to basic profile information</span>
-                        </div>
-                        {scope && scope !== 'read' && (
-                            <div className="flex items-center space-x-2">
-                                <CheckCircle className="h-4 w-4 text-green-500" />
-                                <span className="text-sm">Additional permissions: {scope}</span>
-                            </div>
-                        )}
-                    </div>
-
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
-                        <p>Logged in as: <span className="font-medium">{user?.username}</span></p>
-                    </div>
-                </CardContent>
-
-                <CardFooter className="flex space-x-2">
-                    <Button
-                        variant="outline"
-                        onClick={() => handleAuthorize('deny')}
-                        disabled={submitting}
-                        className="flex-1"
-                    >
-                        {submitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                        Deny
-                    </Button>
-                    <Button
-                        onClick={() => handleAuthorize('approve')}
-                        disabled={submitting}
-                        className="flex-1"
-                    >
-                        {submitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                        Allow Access
-                    </Button>
-                </CardFooter>
-            </Card>
-        </div>
-    );
+				<CardFooter className="flex space-x-2">
+					<Button
+						variant="outline"
+						onClick={() => handleAuthorize('deny')}
+						disabled={submitting}
+						className="flex-1"
+					>
+						{submitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+						Deny
+					</Button>
+					<Button
+						onClick={() => handleAuthorize('approve')}
+						disabled={submitting}
+						className="flex-1"
+					>
+						{submitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+						Allow Access
+					</Button>
+				</CardFooter>
+			</Card>
+		</div>
+	);
 }
 
 export default function AuthorizePage() {
-    return (
-        <Suspense fallback={<Fallback />}>
-            <AuthorizePageContent />
-        </Suspense>
-    );
+	return (
+		<Suspense fallback={null}>
+			<AuthorizeContent />
+		</Suspense>
+	);
 }
