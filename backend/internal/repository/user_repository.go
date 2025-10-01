@@ -27,6 +27,8 @@ type UserRepository interface {
 	GetUsersWithFilters(ctx context.Context, limit, offset int, role, emailVerified string) ([]*models.User, error)
 	GetUserCount(ctx context.Context) (int64, error)
 	GetUserCountByDateRange(ctx context.Context, start, end time.Time) (int64, error)
+
+	GetVerifiedUserCount(ctx context.Context) (int64, error)
 }
 
 type userRepository struct {
@@ -159,6 +161,16 @@ func (r *userRepository) GetUserCountByDateRange(ctx context.Context, start, end
 		Where("created_at BETWEEN ? AND ?", start, end).
 		Count(&count).Error; err != nil {
 		return 0, fmt.Errorf("failed to get user count by date range: %w", err)
+	}
+	return count, nil
+}
+
+func (r *userRepository) GetVerifiedUserCount(ctx context.Context) (int64, error) {
+	var count int64
+	if err := r.db.WithContext(ctx).Model(&models.User{}).
+		Where("email_verified = ?", true).
+		Count(&count).Error; err != nil {
+		return 0, fmt.Errorf("failed to get verified user count: %w", err)
 	}
 	return count, nil
 }

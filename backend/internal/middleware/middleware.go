@@ -5,6 +5,7 @@ import (
 	"jiko-auth/pkg/jwt"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	"jiko-auth/internal/repository"
@@ -65,10 +66,10 @@ func AuthMiddleware(jwtService *jwt.Service) gin.HandlerFunc {
 			return
 		}
 
-		// Сохраняем информацию о пользователе в контексте
-		c.Set("user_id", claims["sub"])
-		if role, exists := claims["role"]; exists {
-			c.Set("user_role", role)
+		// Теперь правильно работаем со структурой Claims
+		c.Set("user_id", claims.UserID) // Используем поле структуры, а не map
+		if claims.Role != "" {
+			c.Set("user_role", claims.Role)
 		}
 		c.Next()
 	}
@@ -90,23 +91,16 @@ func AdminMiddleware(jwtService *jwt.Service) gin.HandlerFunc {
 			return
 		}
 
-		role, exists := claims["role"]
-		if !exists {
-			c.JSON(http.StatusForbidden, gin.H{"error": "Invalid token claims"})
-			c.Abort()
-			return
-		}
-
-		roleStr, ok := role.(string)
-		if !ok || roleStr != "admin" {
+		// Проверяем роль через поле структуры
+		if claims.Role != "admin" {
 			c.JSON(http.StatusForbidden, gin.H{"error": "Admin access required"})
 			c.Abort()
 			return
 		}
 
 		// Сохраняем информацию о пользователе в контексте
-		c.Set("user_id", claims["sub"])
-		c.Set("user_role", claims["role"])
+		c.Set("user_id", claims.UserID)
+		c.Set("user_role", claims.Role)
 		c.Next()
 	}
 }
@@ -170,22 +164,17 @@ func FlexibleAuthMiddleware(jwtService *jwt.Service) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var tokenString string
 
-		// Пытаемся получить токен из заголовка Authorization
 		tokenString = extractTokenFromHeader(c)
-
-		// Если в заголовке нет, пытаемся получить из параметра access_token
 		if tokenString == "" {
 			tokenString = c.Query("access_token")
 		}
 
-		// Если токена нет вообще, не блокируем запрос, но указываем что пользователь не авторизован
 		if tokenString == "" {
 			c.Set("authenticated", false)
 			c.Next()
 			return
 		}
 
-		// Валидируем JWT токен
 		claims, err := jwtService.ValidateToken(tokenString)
 		if err != nil {
 			c.Set("authenticated", false)
@@ -193,12 +182,79 @@ func FlexibleAuthMiddleware(jwtService *jwt.Service) gin.HandlerFunc {
 			return
 		}
 
-		// Сохраняем информацию о пользователе в контексте
-		c.Set("user_id", claims["sub"])
-		if role, exists := claims["role"]; exists {
-			c.Set("user_role", role)
+		// Работаем со структурой Claims
+		c.Set("user_id", claims.UserID)
+		if claims.Role != "" {
+			c.Set("user_role", claims.Role)
 		}
 		c.Set("authenticated", true)
 		c.Next()
 	}
+}
+
+type visitor struct {
+	lastSeen time.Time
+	count    int
+}
+
+type RateLimiter struct {
+	visitors map[string]*visitor
+	mu       sync.RWMutex
+	rate     time.Duration
+	limit    int
+}
+
+func NewRateLimiter(rate time.Duration, limit int) *RateLimiter {
+	rl := &RateLimiter{
+		visitors: make(map[string]*visitor),
+		rate:     rate,
+		limit:    limit,
+	}
+
+	go rl.cleanup()
+	return rl
+}
+
+func (rl *RateLimiter) cleanup() {
+	ticker := time.NewTicker(time.Minute)
+	defer ticker.Stop()
+
+	for range ticker.C {
+		rl.mu.Lock()
+		for ip, v := range rl.visitors {
+			if time.Since(v.lastSeen) > rl.rate {
+				delete(rl.visitors, ip)
+			}
+		}
+		rl.mu.Unlock()
+	}
+}
+
+func (rl *RateLimiter) Allow(ip string) bool {
+	rl.mu.Lock()
+	defer rl.mu.Unlock()
+
+	now := time.Now()
+	v, exists := rl.visitors[ip]
+
+	if !exists {
+		rl.visitors[ip] = &visitor{
+			lastSeen: now,
+			count:    1,
+		}
+		return true
+	}
+
+	if now.Sub(v.lastSeen) > rl.rate {
+		v.lastSeen = now
+		v.count = 1
+		return true
+	}
+
+	if v.count >= rl.limit {
+		return false
+	}
+
+	v.count++
+	return true
 }

@@ -4,16 +4,22 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
+	"encoding/json"
+	"errors"
 	"fmt"
+	"net"
 	"net/http"
-	"regexp"
+	"strconv"
+	"strings"
 	"time"
+	"unicode"
 
 	"jiko-auth/internal/config"
 	"jiko-auth/internal/models"
 	"jiko-auth/internal/repository"
 	"jiko-auth/pkg/email"
 	"jiko-auth/pkg/logger"
+	"jiko-auth/pkg/services"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
@@ -23,19 +29,45 @@ import (
 )
 
 type AuthService struct {
-	userRepo     repository.UserRepository
-	jwtSecret    string
-	emailService *email.EmailService
-	cfg          *config.Config
+	userRepo            repository.UserRepository
+	jwtSecret           string
+	emailService        *email.EmailService
+	cfg                 *config.Config
+	securityRepo        repository.SecurityRepository
+	userAgentParser     *services.UserAgentParser
+	geoLocationService  *services.GeoLocationService
+	notificationService *services.NotificationService
 }
 
-func NewAuthService(userRepo repository.UserRepository, cfg *config.Config, jwtSecret string, emailService *email.EmailService) *AuthService {
+func NewAuthService(userRepo repository.UserRepository,
+	cfg *config.Config,
+	jwtSecret string,
+	emailService *email.EmailService,
+	securityRepo repository.SecurityRepository,
+	userAgentParser *services.UserAgentParser,
+	geoLocationService *services.GeoLocationService,
+	notificationService *services.NotificationService,
+) *AuthService {
 	return &AuthService{
-		userRepo:     userRepo,
-		jwtSecret:    jwtSecret,
-		emailService: emailService,
-		cfg:          cfg,
+		userRepo:            userRepo,
+		jwtSecret:           jwtSecret,
+		emailService:        emailService,
+		cfg:                 cfg,
+		securityRepo:        securityRepo,
+		userAgentParser:     userAgentParser,
+		geoLocationService:  geoLocationService,
+		notificationService: notificationService,
 	}
+}
+
+func generateSessionID() string {
+	// Generate a cryptographically secure random string for the session
+	bytes := make([]byte, 32) // 32 bytes = 256 bits
+	if _, err := rand.Read(bytes); err != nil {
+		// Fallback to UUID if there's an error with crypto/rand
+		return uuid.New().String() + "-" + strconv.FormatInt(time.Now().UnixNano(), 10)
+	}
+	return hex.EncodeToString(bytes)
 }
 
 // InitializeAdmin создает администратора при первом запуске приложения
@@ -110,28 +142,86 @@ type AuthResponse struct {
 }
 
 // ValidatePasswordStrength проверяет сложность пароля
+var (
+	ErrPasswordTooShort  = errors.New("password must be at least 12 characters long")
+	ErrPasswordNoUpper   = errors.New("password must contain uppercase letters")
+	ErrPasswordNoLower   = errors.New("password must contain lowercase letters")
+	ErrPasswordNoNumber  = errors.New("password must contain numbers")
+	ErrPasswordNoSpecial = errors.New("password must contain special characters")
+	ErrPasswordCommon    = errors.New("password is too common")
+)
+
 func ValidatePasswordStrength(password string) error {
 	if len(password) < 12 {
-		return fmt.Errorf("password must be at least 12 characters long")
+		return ErrPasswordTooShort
 	}
 
-	hasUpper := regexp.MustCompile(`[A-Z]`).MatchString(password)
-	hasLower := regexp.MustCompile(`[a-z]`).MatchString(password)
-	hasNumber := regexp.MustCompile(`[0-9]`).MatchString(password)
-	hasSpecial := regexp.MustCompile(`[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]`).MatchString(password)
+	var hasUpper, hasLower, hasNumber, hasSpecial bool
+	for _, char := range password {
+		switch {
+		case unicode.IsUpper(char):
+			hasUpper = true
+		case unicode.IsLower(char):
+			hasLower = true
+		case unicode.IsNumber(char):
+			hasNumber = true
+		case unicode.IsPunct(char) || unicode.IsSymbol(char):
+			hasSpecial = true
+		}
+	}
 
-	if !hasUpper || !hasLower || !hasNumber || !hasSpecial {
-		return fmt.Errorf("password must contain uppercase, lowercase, number and special characters")
+	if !hasUpper {
+		return ErrPasswordNoUpper
+	}
+	if !hasLower {
+		return ErrPasswordNoLower
+	}
+	if !hasNumber {
+		return ErrPasswordNoNumber
+	}
+	if !hasSpecial {
+		return ErrPasswordNoSpecial
+	}
+
+	// Check against common passwords
+	if isCommonPassword(password) {
+		return ErrPasswordCommon
 	}
 
 	return nil
+}
+
+func HashPassword(password string) (string, error) {
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return "", err
+	}
+	return string(hashedPassword), nil
+}
+
+func ComparePassword(hashedPassword, password string) error {
+	return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
+}
+
+func isCommonPassword(password string) bool {
+	commonPasswords := []string{
+		"password", "123456", "12345678", "123456789", "qwerty",
+		"abc123", "password1", "admin", "welcome", "monkey",
+	}
+
+	for _, common := range commonPasswords {
+		if password == common {
+			return true
+		}
+	}
+	return false
 }
 
 // GenerateVerificationToken создает безопасный токен для верификации
 func GenerateVerificationToken() (string, error) {
 	bytes := make([]byte, 32)
 	if _, err := rand.Read(bytes); err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to generate verification token: %w", err)
 	}
 	return hex.EncodeToString(bytes), nil
 }
@@ -282,12 +372,16 @@ func (s *AuthService) Login(c *gin.Context) {
 
 	ctx := c.Request.Context()
 
+	var user *models.User
+	var err error
+
 	// Обычный пользователь - поиск по email или username
-	user, err := s.userRepo.GetUserByEmail(ctx, req.Identifier)
+	user, err = s.userRepo.GetUserByEmail(ctx, req.Identifier)
 	if err != nil || user == nil {
 		// Если не найдено по email, попробуем по username
 		user, err = s.userRepo.GetUserByUsername(ctx, req.Identifier)
 		if err != nil || user == nil {
+			time.Sleep(time.Millisecond * 100)
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid credentials"})
 			return
 		}
@@ -329,6 +423,7 @@ func (s *AuthService) Login(c *gin.Context) {
 				"message": "Письмо с подтверждением отправлено повторно. Проверьте вашу почту.",
 			})
 			return
+
 		}
 
 		logger.Info("Registration attempt with existing email", zap.String("identifier", req.Identifier))
@@ -512,4 +607,158 @@ func CurrentUserHandler(c *gin.Context) {
 		"email":    user.Email,
 		"role":     user.Role,
 	})
+}
+
+func (h *AuthService) LoginHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Метод не поддерживается", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var loginRequest struct {
+		Email    string `json:"email"`
+		Password string `json:"password"`
+		UserID   string `json:"user_id"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&loginRequest); err != nil {
+		http.Error(w, "Неверный формат JSON", http.StatusBadRequest)
+		return
+	}
+
+	// Аутентификация пользователя
+	if !h.authenticateUser(loginRequest.Email, loginRequest.Password) {
+		http.Error(w, "Неверные учетные данные", http.StatusUnauthorized)
+		return
+	}
+
+	// Собираем информацию о входе
+	loginAttempt, err := h.createLoginAttempt(r, loginRequest.Email, loginRequest.UserID)
+	if err != nil {
+		http.Error(w, "Ошибка обработки запроса", http.StatusInternalServerError)
+		return
+	}
+
+	// Сохраняем попытку входа
+	if err := h.securityRepo.CreateLoginAttempt(r.Context(), &loginAttempt); err != nil {
+		http.Error(w, "Ошибка сохранения попытки входа", http.StatusInternalServerError)
+		return
+	}
+
+	// Создаем и сохраняем уведомление
+	user, err := h.userRepo.GetUserByEmail(r.Context(), loginRequest.Email)
+	if err == nil && user != nil {
+		notification := h.notificationService.CreateLoginNotification(&loginAttempt, user)
+		if err := h.securityRepo.CreateNotification(r.Context(), notification); err != nil {
+			// Логируем ошибку, но не прерываем выполнение
+			logger.Error("Failed to save notification", zap.Error(err))
+		}
+	}
+
+	// Возвращаем успешный ответ
+	response := map[string]interface{}{
+		"success":           true,
+		"message":           "Вход выполнен успешно",
+		"attempt_id":        loginAttempt.ID,
+		"notification_sent": true,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
+}
+
+// createLoginAttempt создает запись о попытке входа
+func (h *AuthService) createLoginAttempt(r *http.Request, email, userID string) (models.LoginAttempt, error) {
+	ip := h.getClientIP(r)
+	userAgent := r.Header.Get("User-Agent")
+
+	// Парсим User-Agent
+	deviceInfo := h.userAgentParser.Parse(userAgent)
+
+	// Определяем местоположение
+	geoLocation, err := h.geoLocationService.GetLocationByIP(ip)
+	if err != nil {
+		fmt.Printf("Ошибка определения местоположения: %v\n", err)
+	}
+
+	//Конвертируем строку UserID к uuid.UUID
+	userUUID, err := uuid.Parse(userID)
+	if err != nil {
+		return models.LoginAttempt{}, fmt.Errorf("invalid user ID format: %w", err)
+	}
+
+	attempt := models.LoginAttempt{
+		ID:          uuid.New(),
+		UserID:      userUUID,
+		Email:       email,
+		Timestamp:   time.Now(),
+		IPAddress:   ip,
+		UserAgent:   userAgent,
+		DeviceInfo:  deviceInfo,
+		GeoLocation: geoLocation,
+		SessionID:   generateSessionID(),
+		Status:      "success",
+	}
+
+	return attempt, nil
+}
+
+// getClientIP извлекает реальный IP-адрес клиента
+func (h *AuthService) getClientIP(r *http.Request) string {
+	// Пробуем получить IP из заголовков (если за прокси)
+	if ip := r.Header.Get("X-Real-IP"); ip != "" {
+		return ip
+	}
+	if ip := r.Header.Get("X-Forwarded-For"); ip != "" {
+		// Берем первый IP из списка
+		ips := strings.Split(ip, ",")
+		if len(ips) > 0 {
+			return strings.TrimSpace(ips[0])
+		}
+	}
+
+	// Безопасное извлечение IP из RemoteAddr
+	host, _, err := net.SplitHostPort(r.RemoteAddr)
+	if err != nil {
+		// Если SplitHostPort возвращает ошибку, возможно это просто IP без порта
+		if strings.Contains(r.RemoteAddr, ":") {
+			// IPv6 адрес без порта
+			return r.RemoteAddr
+		}
+		// IPv4 адрес без порта
+		return r.RemoteAddr
+	}
+	return host
+}
+
+// authenticateUser заглушка аутентификации
+func (h *AuthService) authenticateUser(email, password string) bool {
+	// В реальном приложении здесь должна быть проверка в базе данных
+	return email != "" && password != ""
+}
+
+// GetLoginHistoryHandler возвращает историю входов пользователя
+func (h *AuthService) GetLoginHistoryHandler(w http.ResponseWriter, r *http.Request) {
+	userID := r.URL.Query().Get("user_id")
+	if userID == "" {
+		http.Error(w, "user_id обязателен", http.StatusBadRequest)
+		return
+	}
+
+	// Convert string userID to uuid.UUID
+	userUUID, err := uuid.Parse(userID)
+	if err != nil {
+		http.Error(w, "invalid user_id format", http.StatusBadRequest)
+		return
+	}
+
+	// Use the securityRepo field instead of a non-existent 'repository' field
+	history, err := h.securityRepo.GetUserLoginHistory(r.Context(), userUUID, 50) // Specify a limit
+	if err != nil {
+		http.Error(w, "failed to get login history", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(history)
 }
