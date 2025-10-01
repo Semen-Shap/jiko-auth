@@ -51,6 +51,9 @@ services:
     container_name: jiko-auth-frontend
     build: ./frontend
     restart: always
+    environment:
+      - NEXTAUTH_URL=${NEXTAUTH_URL}
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
     ports:
       - "3004:3000"
     networks:
