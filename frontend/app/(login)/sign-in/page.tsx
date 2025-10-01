@@ -9,6 +9,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useNotification } from '@/components/Notification';
 import Fallback from '@/components/fallback';
+import { signIn } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 
 function SignInForm() {
     const [form, setForm] = useState({
@@ -19,6 +21,7 @@ function SignInForm() {
     const [isLoading, setIsLoading] = useState(false);
     const { showNotification, NotificationComponent } = useNotification();
     const searchParams = useSearchParams();
+    const router = useRouter();
     const redirectUrl = searchParams.get('redirect');
 
     const validateEmail = (email: string): boolean => {
@@ -55,39 +58,27 @@ function SignInForm() {
 
         setIsLoading(true);
         try {
-            const response = await fetch('/api/v1/auth/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(form)
+            const result = await signIn('credentials', {
+                identifier: form.identifier,
+                password: form.password,
+                redirect: false,
             });
 
-            const data = await response.json();
-
-            if (response.ok) {
-                showNotification(data.message || 'Success!', 'success');
-
-                // Save token and user data for all users
-                localStorage.setItem('access_token', data.access_token);
-                localStorage.setItem('user', JSON.stringify(data.user));
-
-                // Redirect back to OAuth authorize page if redirect parameter exists
+            if (result?.error) {
+                showNotification('Invalid credentials', 'error');
+            } else if (result?.ok) {
+                showNotification('Login successful!', 'success');
                 setTimeout(() => {
                     if (redirectUrl) {
-                        // Decode the redirect URL and navigate to it
-                        window.location.href = decodeURIComponent(redirectUrl);
+                        router.push(decodeURIComponent(redirectUrl));
                     } else {
-                        // Default redirect to home page
-                        window.location.href = '/';
+                        router.push('/');
                     }
                 }, 1000);
-            } else {
-                showNotification(data.error || 'An error occurred', 'error');
             }
         } catch (error) {
             console.error('Login error:', error);
-            showNotification('An error occurred while submitting the form', 'error');
+            showNotification('An error occurred while signing in', 'error');
         } finally {
             setIsLoading(false);
         }

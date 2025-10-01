@@ -8,7 +8,7 @@ import {
     SidebarTrigger,
 } from '@/components/ui/sidebar';
 import { Separator } from '@/components/ui/separator';
-import { useAuth } from '@/hooks/use-auth';
+import { useSession } from 'next-auth/react';
 import Loading from '@/components/loading';
 
 interface AdminLayoutProps {
@@ -16,7 +16,11 @@ interface AdminLayoutProps {
 }
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
-    const { isAuthenticated, isLoading, isAdmin } = useAuth();
+    const { data: session, status } = useSession();
+
+    const isAuthenticated = !!session;
+    const isAdmin = session?.user?.role === 'admin';
+    const isLoading = status === 'loading';
 
     useEffect(() => {
         if (!isLoading && (!isAuthenticated || !isAdmin)) {

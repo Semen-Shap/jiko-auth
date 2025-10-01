@@ -2,45 +2,45 @@
 
 import { Header } from "@/components/Header";
 import Loading from "@/components/loading";
-import { useAuth } from '@/hooks/use-auth';
+import { useSession } from 'next-auth/react';
 import { useEffect, useState } from 'react';
 
 export default function MainLayout({
-    children,
+	children,
 }: Readonly<{
-    children: React.ReactNode;
+	children: React.ReactNode;
 }>) {
-    const { isAuthenticated, isLoading } = useAuth();
-    const [mounted, setMounted] = useState(false);
+	const { data: session, status } = useSession();
+	const [mounted, setMounted] = useState(false);
 
-    useEffect(() => {
-        setMounted(true);
-    }, []);
+	useEffect(() => {
+		setMounted(true);
+	}, []);
 
-    useEffect(() => {
-        if (mounted && !isLoading && !isAuthenticated) {
-            window.location.href = '/';
-        }
-    }, [mounted, isLoading, isAuthenticated]);
+	useEffect(() => {
+		if (mounted && status !== 'loading' && !session) {
+			window.location.href = '/';
+		}
+	}, [mounted, status, session]);
 
-    if (!mounted || isLoading) {
-        return (
-            <div className='flex items-center justify-center min-h-screen'>
-                <Loading />
-            </div>
-        );
-    }
+	if (!mounted || status === 'loading') {
+		return (
+			<div className='flex items-center justify-center min-h-screen'>
+				<Loading />
+			</div>
+		);
+	}
 
-    if (!isAuthenticated) {
-        return null; // Will redirect in useEffect
-    }
+	if (!session) {
+		return null; // Will redirect in useEffect
+	}
 
-    return (
-        <div className="min-h-screen flex flex-col">
-            <Header />
-            <main className="flex-1">
-                {children}
-            </main>
-        </div>
-    );
+	return (
+		<div className="min-h-screen flex flex-col">
+			<Header />
+			<main className="flex-1">
+				{children}
+			</main>
+		</div>
+	);
 }
