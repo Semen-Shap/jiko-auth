@@ -1,16 +1,14 @@
 "use client";
 
-import { Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, Shield, CheckCircle, XCircle } from 'lucide-react';
-import Fallback from '@/components/fallback';
 import { useOAuth } from '@/hooks/use-oauth';
 
-function AuthorizePageContent() {
+export default function AuthorizePage() {
 	const router = useRouter();
 	const { data: session } = useSession();
 	const user = session?.user;
@@ -25,7 +23,7 @@ function AuthorizePageContent() {
 				<Card className="w-full max-w-md">
 					<CardHeader>
 						<CardTitle className="flex items-center">
-							<XCircle className="h-5 w-5 text-red-500 mr-2" />
+							<XCircle className="h-5 w-5 text-destructive mr-2" />
 							Authorization Error
 						</CardTitle>
 					</CardHeader>
@@ -111,13 +109,5 @@ function AuthorizePageContent() {
 				</CardFooter>
 			</Card>
 		</div>
-	);
-}
-
-export default function AuthorizePage() {
-	return (
-		<Suspense fallback={<Fallback />}>
-			<AuthorizePageContent />
-		</Suspense>
 	);
 }
