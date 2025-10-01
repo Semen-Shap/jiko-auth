@@ -11,8 +11,11 @@ import (
 	"net/url"
 	"time"
 
+	"jiko-auth/pkg/logger"
+
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"go.uber.org/zap"
 )
 
 type OAuthHandler struct {
@@ -180,14 +183,25 @@ func (h *OAuthHandler) GetClientInfo(c *gin.Context) {
 
 func (h *OAuthHandler) Token(c *gin.Context) {
 	grantType := c.PostForm("grant_type")
+	code := c.PostForm("code")
+	redirectURI := c.PostForm("redirect_uri")
+	clientID := c.PostForm("client_id")
+	clientSecret := c.PostForm("client_secret")
+
+	// Логируем все параметры для отладки
+	logger.Info("Token request received",
+		zap.String("grant_type", grantType),
+		zap.String("code", code),
+		zap.String("redirect_uri", redirectURI),
+		zap.String("client_id", clientID),
+		zap.String("client_secret", clientSecret[:10]+"..."), // не логируем полный secret
+		zap.String("content_type", c.GetHeader("Content-Type")),
+		zap.String("method", c.Request.Method),
+		zap.String("url", c.Request.URL.String()),
+	)
 
 	switch grantType {
 	case "authorization_code":
-		code := c.PostForm("code")
-		redirectURI := c.PostForm("redirect_uri")
-		clientID := c.PostForm("client_id")
-		clientSecret := c.PostForm("client_secret")
-
 		tokens, err := h.oauthService.ExchangeCodeForToken(code, redirectURI, clientID, clientSecret)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -198,8 +212,6 @@ func (h *OAuthHandler) Token(c *gin.Context) {
 
 	case "refresh_token":
 		refreshToken := c.PostForm("refresh_token")
-		clientID := c.PostForm("client_id")
-		clientSecret := c.PostForm("client_secret")
 
 		// Используем правильный метод RefreshToken вместо ExchangeCodeForToken
 		tokens, err := h.oauthService.RefreshToken(refreshToken, clientID, clientSecret)
