@@ -12,14 +12,21 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useAuth } from '@/hooks/use-auth';
+import { useSession, signOut } from 'next-auth/react';
 
 export function Header() {
-	const { user, isAuthenticated, logout, isAdmin } = useAuth();
+	const { data: session, status } = useSession();
 
-	if (!isAuthenticated || !user) {
+	if (status === 'loading' || !session || !session.user) {
 		return null;
 	}
+
+	const user = session.user;
+	const isAdmin = user.role === 'admin';
+
+	const logout = async () => {
+		await signOut({ callbackUrl: "/" });
+	};
 
 	return (
 		<header className="w-full h-[50px] border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex-shrink-0">
@@ -47,16 +54,16 @@ export function Header() {
 						<DropdownMenu>
 							<DropdownMenuTrigger asChild>
 								<Avatar className="cursor-pointer hover:opacity-80 transition-opacity h-8 w-8">
-									<AvatarImage src="" alt={user.username} />
+									<AvatarImage src="" alt={user.name || ''} />
 									<AvatarFallback className="bg-primary text-primary-foreground text-sm">
-										{user.username.charAt(0).toUpperCase()}
+										{user.name?.charAt(0).toUpperCase()}
 									</AvatarFallback>
 								</Avatar>
 							</DropdownMenuTrigger>
 							<DropdownMenuContent align="end" className="w-56">
 								<DropdownMenuLabel>
 									<div className="flex flex-col space-y-1">
-										<p className="text-sm font-medium leading-none">{user.username}</p>
+										<p className="text-sm font-medium leading-none">{user.name}</p>
 										<p className="text-xs leading-none text-muted-foreground">
 											{user.email || 'No email'}
 										</p>
