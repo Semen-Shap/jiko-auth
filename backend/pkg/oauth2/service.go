@@ -2,7 +2,11 @@
 package oauth2
 
 import (
+	"crypto/rand"
+	"crypto/sha256"
+	"encoding/base64"
 	"errors"
+	"fmt"
 	"jiko-auth/internal/models"
 	"jiko-auth/internal/utils"
 	"time"
@@ -12,6 +16,8 @@ type AuthCodeRepository interface {
 	SaveAuthorizationCode(code, clientID, userID, redirectURI, scope string, expiresAt time.Time) error
 	GetAuthorizationCode(code string) (*models.AuthorizationCode, error)
 	MarkAuthorizationCodeUsed(code string) error
+	SaveAuthorizationCodeWithPKCE(code, clientID, userID, redirectURI, scope string, expiresAt time.Time, codeChallenge, codeChallengeMethod string) error
+	GetAuthorizationCodeWithPKCE(code string) (*models.AuthorizationCode, error)
 }
 
 type TokenRepository interface {
@@ -43,14 +49,13 @@ func NewService(authCodeRepo AuthCodeRepository, tokenRepo TokenRepository, clie
 }
 
 func (s *Service) GenerateAuthorizationCode(clientID, userID, redirectURI, scope string) (string, error) {
-	code, err := utils.GenerateRandomString(32)
+	code, err := generateCryptoSecureToken(32)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to generate authorization code: %w", err)
 	}
 
 	expiresAt := time.Now().Add(10 * time.Minute)
 
-	// Сохраняем код перед возвратом
 	err = s.authCodeRepo.SaveAuthorizationCode(code, clientID, userID, redirectURI, scope, expiresAt)
 	if err != nil {
 		return "", err
@@ -200,6 +205,69 @@ func (s *Service) IntrospectToken(token string) (map[string]interface{}, error) 
 	}, nil
 }
 
-func (s *Service) HasRefreshToken(userID, clientID string) (bool, error) {
-	return s.tokenRepo.HasRefreshTokenForUserAndClient(userID, clientID)
+
+func (s *Service) GenerateAuthorizationCodeWithPKCE(clientID, userID, redirectURI, scope, codeChallenge, codeChallengeMethod string) (string, error) {
+	code, err := utils.GenerateRandomString(32)
+	if err != nil {
+		return "", err
+	}
+
+	expiresAt := time.Now().Add(10 * time.Minute)
+
+	// Store code challenge for PKCE validation
+	err = s.authCodeRepo.SaveAuthorizationCodeWithPKCE(code, clientID, userID, redirectURI, scope, expiresAt, codeChallenge, codeChallengeMethod)
+	if err != nil {
+		return "", err
+	}
+
+	return code, nil
+}
+
+func (s *Service) ExchangeCodeForTokenWithPKCE(code, redirectURI, clientID, clientSecret, codeVerifier string) (map[string]interface{}, error) {
+	// Validate client credentials
+	isValid, err := s.clientRepo.ValidateClientSecret(clientID, clientSecret)
+	if err != nil || !isValid {
+		return nil, errors.New("invalid client credentials")
+	}
+
+	// Get authorization code with PKCE data
+	authCode, err := s.authCodeRepo.GetAuthorizationCodeWithPKCE(code)
+	if err != nil {
+		return nil, err
+	}
+
+	// Validate PKCE
+	if err := validatePKCE(authCode.CodeChallenge, authCode.CodeChallengeMethod, codeVerifier); err != nil {
+		return nil, err
+	}
+
+	// Rest of the token exchange logic remains the same...
+	return s.ExchangeCodeForToken(code, redirectURI, clientID, clientSecret)
+}
+
+func validatePKCE(codeChallenge, codeChallengeMethod, codeVerifier string) error {
+	switch codeChallengeMethod {
+	case "S256":
+		hash := sha256.Sum256([]byte(codeVerifier))
+		calculatedChallenge := base64.URLEncoding.WithPadding(base64.NoPadding).EncodeToString(hash[:])
+		if calculatedChallenge != codeChallenge {
+			return errors.New("invalid code verifier")
+		}
+	case "plain":
+		if codeVerifier != codeChallenge {
+			return errors.New("invalid code verifier")
+		}
+	default:
+		return errors.New("unsupported code challenge method")
+	}
+	return nil
+}
+
+func generateCryptoSecureToken(length int) (string, error) {
+	bytes := make([]byte, length)
+	if _, err := rand.Read(bytes); err != nil {
+		return "", err
+	}
+	return base64.URLEncoding.EncodeToString(bytes), nil
+
 }

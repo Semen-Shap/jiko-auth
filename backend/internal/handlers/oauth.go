@@ -201,7 +201,6 @@ func (h *OAuthHandler) Token(c *gin.Context) {
 		clientID := c.PostForm("client_id")
 		clientSecret := c.PostForm("client_secret")
 
-		// Используем правильный метод RefreshToken вместо ExchangeCodeForToken
 		tokens, err := h.oauthService.RefreshToken(refreshToken, clientID, clientSecret)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -282,7 +281,6 @@ func (h *OAuthHandler) CreateClient(c *gin.Context) {
 		return
 	}
 
-	// Исправлено: создаем объект models.OAuthClient вместо repository.OAuthClientRepository
 	client := &models.OAuthClient{
 		UserID:       uid,
 		Name:         req.Name,
@@ -331,9 +329,6 @@ func (h *OAuthHandler) CreateToken(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
 		return
 	}
-
-	// Сохраняем токен в базе данных
-	// (реализация зависит от вашей структуры базы данных)
 
 	c.JSON(http.StatusCreated, gin.H{"token": token})
 }

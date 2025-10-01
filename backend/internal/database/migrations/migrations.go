@@ -24,6 +24,8 @@ func RunMigrations(db *gorm.DB) error {
 		&models.AuthorizationCode{},
 		&models.AccessToken{},
 		&models.RefreshToken{},
+		&models.LoginAttempt{},
+		&models.SecurityNotification{},
 	}
 
 	for _, table := range tables {

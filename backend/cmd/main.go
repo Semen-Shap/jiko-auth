@@ -11,6 +11,7 @@ import (
 	"jiko-auth/pkg/email"
 	"jiko-auth/pkg/jwt"
 	"jiko-auth/pkg/oauth2"
+	"jiko-auth/pkg/services"
 	"log"
 	"net/http"
 
@@ -31,6 +32,12 @@ func main() {
 	clientRepo := repository.NewOAuthClientRepository(db)
 	authCodeRepo := repository.NewAuthCodeRepository(db)
 	tokenRepo := repository.NewTokenRepository(db)
+	securityRepo := repository.NewSecurityRepository(db)
+
+	// Инициализация сервисов безопасности
+	userAgentParser := services.NewUserAgentParser()
+	geoLocationService := services.NewGeoLocationService("") // Можно добавить API ключ из конфига
+	notificationService := services.NewNotificationService()
 
 	// Инициализация сервисов
 	jwtService := jwt.NewService(cfg.JWTSecret)
@@ -38,7 +45,16 @@ func main() {
 	emailService := email.NewEmailService(cfg)
 
 	// Инициализация обработчиков
-	authHandler := auth.NewAuthService(userRepo, cfg, cfg.JWTSecret, emailService)
+	authHandler := auth.NewAuthService(
+		userRepo,
+		cfg,
+		cfg.JWTSecret,
+		emailService,
+		securityRepo,
+		userAgentParser,
+		geoLocationService,
+		notificationService,
+	)
 	oauthHandler := handlers.NewOAuthHandler(oauthService, clientRepo, userRepo)
 	codesHandler := handlers.NewCodesHandler(clientRepo)
 	adminHandler := handlers.NewAdminHandler(userRepo, clientRepo)

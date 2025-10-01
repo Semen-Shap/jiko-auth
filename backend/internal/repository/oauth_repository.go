@@ -211,20 +211,38 @@ func (r *TokenRepository) DeleteExpiredTokens() error {
 	return nil
 }
 
-func (r *TokenRepository) HasRefreshTokenForUserAndClient(userID, clientID string) (bool, error) {
-	userUUID, err := uuid.Parse(userID)
-	if err != nil {
-		return false, err
-	}
 
+// internal/repository/oauth_repository.go
+func (r *AuthCodeRepository) SaveAuthorizationCodeWithPKCE(code, clientID, userID, redirectURI, scope string, expiresAt time.Time, codeChallenge, codeChallengeMethod string) error {
 	clientUUID, err := uuid.Parse(clientID)
 	if err != nil {
-		return false, err
+		return err
 	}
 
-	var count int64
-	err = r.db.Model(&models.RefreshToken{}).
-		Where("user_id = ? AND client_id = ? AND expires_at > ?", userUUID, clientUUID, time.Now()).
-		Count(&count).Error
-	return count > 0, err
+	userUUID, err := uuid.Parse(userID)
+	if err != nil {
+		return err
+	}
+
+	authCode := &models.AuthorizationCode{
+		Code:                code,
+		ClientID:            clientUUID,
+		UserID:              userUUID,
+		RedirectURI:         redirectURI,
+		Scope:               scope,
+		ExpiresAt:           expiresAt,
+		Used:                false,
+		CodeChallenge:       codeChallenge,
+		CodeChallengeMethod: codeChallengeMethod,
+		CreatedAt:           time.Now(),
+	}
+
+	return r.db.Create(authCode).Error
+}
+
+func (r *AuthCodeRepository) GetAuthorizationCodeWithPKCE(code string) (*models.AuthorizationCode, error) {
+	var authCode models.AuthorizationCode
+	err := r.db.First(&authCode, "code = ?", code).Error
+	return &authCode, err
+
 }
