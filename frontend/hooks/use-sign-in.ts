@@ -64,7 +64,7 @@ export function useSignIn() {
 					if (redirectUrl) {
 						router.push(decodeURIComponent(redirectUrl));
 					} else {
-						router.push('/');
+						router.push('/welcome');
 					}
 				}, 1000);
 			}
