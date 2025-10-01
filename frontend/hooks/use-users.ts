@@ -1,4 +1,4 @@
-import { User } from '@/lib/types/db';
+import { User } from '@/types/db';
 import { useState, useCallback, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 

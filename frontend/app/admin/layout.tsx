@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect } from 'react';
 import AdminSidebar from '@/components/AdminSidebar';
 import {
 	SidebarInset,
@@ -9,7 +8,6 @@ import {
 } from '@/components/ui/sidebar';
 import { Separator } from '@/components/ui/separator';
 import { useSession } from 'next-auth/react';
-import Loading from '@/components/loading';
 
 interface AdminLayoutProps {
 	children: React.ReactNode;
@@ -19,13 +17,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 	const { status } = useSession();
 	const isLoading = status === 'loading';
 
-	if (isLoading) {
-		return (
-			<div className='flex items-center justify-center min-h-screen'>
-				<Loading />
-			</div>
-		);
-	}
+	if (isLoading) return null;
 
 	return (
 		<div className="min-h-screen flex">

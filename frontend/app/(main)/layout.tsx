@@ -1,7 +1,6 @@
 "use client";
 
 import { Header } from "@/components/Header";
-import Loading from "@/components/loading";
 import { useSession } from 'next-auth/react';
 
 export default function MainLayout({

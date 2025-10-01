@@ -1,9 +1,9 @@
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import NextAuth from "next-auth";
 
 declare module "next-auth" {
 	interface Session {
 		accessToken?: string;
-		expiresAt?: number;
 		user: {
 			id: string;
 			name?: string | null;
@@ -23,9 +23,7 @@ declare module "next-auth" {
 		accessToken: string;
 		expiresAt: number;
 	}
-}
 
-declare module "next-auth/jwt" {
 	interface JWT {
 		accessToken?: string;
 		role?: string;

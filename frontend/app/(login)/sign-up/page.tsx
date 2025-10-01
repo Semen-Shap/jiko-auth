@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { useNotification } from '@/components/Notification';
+import { useNotification } from '@/components/NotificationProvider';
 
 export default function SignUp() {
 	const [form, setForm] = useState({
@@ -19,7 +19,7 @@ export default function SignUp() {
 	});
 	const [errors, setErrors] = useState<Record<string, string>>({});
 	const [isLoading, setIsLoading] = useState(false);
-	const { showNotification, NotificationComponent } = useNotification();
+	const { showNotification } = useNotification();
 
 	const validateEmail = (email: string): boolean => {
 		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -216,8 +216,6 @@ export default function SignUp() {
 					</form>
 				</CardContent>
 			</Card>
-
-			{NotificationComponent}
 		</div>
 	);
 }

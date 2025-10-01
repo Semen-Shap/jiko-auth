@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import { useUsers, UpdateUserData } from '@/hooks/use-users';
-import { User } from '@/lib/types/db';
-import { useNotification } from '@/components/Notification';
+import { User } from '@/types/db';
+import { useNotification } from '@/components/NotificationProvider';
 import { CreateUserModal } from './CreateUserModal';
 import { EditUserModal } from './EditUserModal';
 import { DeleteUserModal } from './DeleteUserModal';
@@ -40,7 +40,7 @@ export default function Users() {
 		updateUser,
 		deleteUser
 	} = useUsers();
-	const { showNotification, NotificationComponent } = useNotification();
+	const { showNotification } = useNotification();
 
 	// Modal states
 	const [showCreateModal, setShowCreateModal] = useState(false);
@@ -248,8 +248,6 @@ export default function Users() {
 				user={userToDelete}
 				loading={loading}
 			/>
-
-			{NotificationComponent}
 		</div>
 	);
 }

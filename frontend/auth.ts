@@ -71,7 +71,6 @@ export const authOptions: NextAuthOptions = {
 				session.user.id = token.sub!;
 				session.user.role = token.role as string;
 				session.user.emailVerified = token.emailVerified as boolean;
-				session.expires = new Date((token.expiresAt as number) * 1000).toISOString();
 			}
 			return session;
 		},

@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import { useClients } from '@/hooks/use-clients';
-import { Client } from '@/lib/types/db';
-import { useNotification } from '@/components/Notification';
+import { Client } from '@/types/db';
+import { useNotification } from '@/components/NotificationProvider';
 import { CreateClientModal } from './CreateClientModal';
 import { DeleteClientModal } from './DeleteClientModal';
 import { ClientCreatedModal } from './ClientCreatedModal';
@@ -39,7 +39,7 @@ export default function Clients() {
 		createClient,
 		deleteClient
 	} = useClients();
-	const { showNotification, NotificationComponent } = useNotification();
+	const { showNotification } = useNotification();
 
 	// Modal states
 	const [showCreateModal, setShowCreateModal] = useState(false);
@@ -207,8 +207,6 @@ export default function Clients() {
 				client={clientToDelete}
 				loading={loading}
 			/>
-
-			{NotificationComponent}
 		</div>
 	);
 }

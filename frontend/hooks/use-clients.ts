@@ -1,4 +1,4 @@
-import { Client } from '@/lib/types/db';
+import { Client } from '@/types/db';
 import { useState, useCallback, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 
@@ -9,7 +9,7 @@ export interface CreateClientData {
 
 export function useClients() {
 	const { data: session } = useSession();
-	const token = (session as any)?.accessToken;
+	const token = session?.accessToken;
 	const [clients, setClients] = useState<Client[]>([]);
 	const [totalClients, setTotalClients] = useState(0);
 	const [currentPage, setCurrentPage] = useState(1);

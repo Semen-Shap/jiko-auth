@@ -10,7 +10,7 @@ export interface Stats {
 
 export function useStats() {
 	const { data: session } = useSession();
-	const token = (session as any)?.accessToken;
+	const token = session?.accessToken;
 	const [stats, setStats] = useState<Stats | null>(null);
 	const [loading, setLoading] = useState(false);
 
