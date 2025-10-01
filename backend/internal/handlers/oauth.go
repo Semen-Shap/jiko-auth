@@ -2,7 +2,9 @@
 package handlers
 
 import (
+	"bytes"
 	"encoding/json"
+	"io"
 	"jiko-auth/internal/models"
 	"jiko-auth/internal/repository"
 	"jiko-auth/internal/utils"
@@ -182,6 +184,13 @@ func (h *OAuthHandler) GetClientInfo(c *gin.Context) {
 }
 
 func (h *OAuthHandler) Token(c *gin.Context) {
+	// Читаем тело для логирования
+	bodyBytes, _ := c.GetRawData()
+	bodyString := string(bodyBytes)
+
+	// Восстанавливаем тело для PostForm
+	c.Request.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+
 	grantType := c.PostForm("grant_type")
 	code := c.PostForm("code")
 	redirectURI := c.PostForm("redirect_uri")
@@ -189,12 +198,17 @@ func (h *OAuthHandler) Token(c *gin.Context) {
 	clientSecret := c.PostForm("client_secret")
 
 	// Логируем все параметры для отладки
+	secretPreview := clientSecret
+	if len(clientSecret) > 10 {
+		secretPreview = clientSecret[:10] + "..."
+	}
 	logger.Info("Token request received",
+		zap.String("body", bodyString),
 		zap.String("grant_type", grantType),
 		zap.String("code", code),
 		zap.String("redirect_uri", redirectURI),
 		zap.String("client_id", clientID),
-		zap.String("client_secret", clientSecret[:10]+"..."), // не логируем полный secret
+		zap.String("client_secret", secretPreview),
 		zap.String("content_type", c.GetHeader("Content-Type")),
 		zap.String("method", c.Request.Method),
 		zap.String("url", c.Request.URL.String()),
