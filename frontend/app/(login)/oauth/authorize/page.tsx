@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
@@ -8,7 +9,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, Shield, CheckCircle, XCircle } from 'lucide-react';
 import { useOAuth } from '@/hooks/use-oauth';
 
-export default function AuthorizePage() {
+function AuthorizeContent() {
 	const router = useRouter();
 	const { data: session } = useSession();
 	const user = session?.user;
@@ -109,5 +110,13 @@ export default function AuthorizePage() {
 				</CardFooter>
 			</Card>
 		</div>
+	);
+}
+
+export default function AuthorizePage() {
+	return (
+		<Suspense fallback={null}>
+			<AuthorizeContent />
+		</Suspense>
 	);
 }
