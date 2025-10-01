@@ -24,7 +24,7 @@ export async function middleware(request: NextRequest) {
 	}
 
 	// Перенаправление аутентифицированных пользователей с login/sign-in страниц на welcome
-	if ((pathname === '/sign-in' || pathname.startsWith('/login')) && isAuth) {
+	if ((pathname === '/sign-in' || pathname === '/' || pathname === '/sign-up') && isAuth) {
 		return NextResponse.redirect(new URL('/welcome', request.url));
 	}
 
