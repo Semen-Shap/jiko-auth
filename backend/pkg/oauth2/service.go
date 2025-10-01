@@ -2,10 +2,13 @@
 package oauth2
 
 import (
+	"context"
 	"errors"
 	"jiko-auth/internal/models"
 	"jiko-auth/internal/utils"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type AuthCodeRepository interface {
@@ -28,17 +31,29 @@ type ClientRepository interface {
 	ValidateClientSecret(clientID, clientSecret string) (bool, error)
 }
 
+type UserRepository interface {
+	GetUserByID(ctx context.Context, id uuid.UUID) (*models.User, error)
+}
+
+type JWTService interface {
+	GenerateIDToken(userID, clientID, email, username, role string) (string, error)
+}
+
 type Service struct {
 	authCodeRepo AuthCodeRepository
 	tokenRepo    TokenRepository
 	clientRepo   ClientRepository
+	userRepo     UserRepository
+	jwtService   JWTService
 }
 
-func NewService(authCodeRepo AuthCodeRepository, tokenRepo TokenRepository, clientRepo ClientRepository) *Service {
+func NewService(authCodeRepo AuthCodeRepository, tokenRepo TokenRepository, clientRepo ClientRepository, userRepo UserRepository, jwtService JWTService) *Service {
 	return &Service{
 		authCodeRepo: authCodeRepo,
 		tokenRepo:    tokenRepo,
 		clientRepo:   clientRepo,
+		userRepo:     userRepo,
+		jwtService:   jwtService,
 	}
 }
 
@@ -77,12 +92,31 @@ func (s *Service) RefreshToken(refreshToken, clientID, clientSecret string) (map
 		return nil, errors.New("refresh token expired")
 	}
 
+	// Получаем информацию о пользователе
+	userIDUUID, err := uuid.Parse(refreshTokenInfo.UserID.String())
+	if err != nil {
+		return nil, err
+	}
+	user, err := s.userRepo.GetUserByID(context.Background(), userIDUUID)
+	if err != nil {
+		return nil, err
+	}
+	if user == nil {
+		return nil, errors.New("user not found")
+	}
+
 	// Генерируем новый access token
 	accessToken, err := utils.GenerateRandomString(32)
 	if err != nil {
 		return nil, err
 	}
 	accessTokenExp := time.Now().Add(1 * time.Hour)
+
+	// Генерируем id_token
+	idToken, err := s.jwtService.GenerateIDToken(user.ID.String(), clientID, user.Email, user.Username, user.Role)
+	if err != nil {
+		return nil, err
+	}
 
 	// Сохраняем новый access token
 	err = s.tokenRepo.SaveAccessToken(accessToken, clientID, refreshTokenInfo.UserID.String(), refreshTokenInfo.Scope, accessTokenExp)
@@ -93,6 +127,7 @@ func (s *Service) RefreshToken(refreshToken, clientID, clientSecret string) (map
 	// Возвращаем новый access token
 	return map[string]interface{}{
 		"access_token": accessToken,
+		"id_token":     idToken,
 		"token_type":   "Bearer",
 		"expires_in":   int64(time.Until(accessTokenExp).Seconds()),
 		"scope":        refreshTokenInfo.Scope,
@@ -133,6 +168,19 @@ func (s *Service) ExchangeCodeForToken(code, redirectURI, clientID, clientSecret
 		return nil, err
 	}
 
+	// Получаем информацию о пользователе
+	userIDUUID, err := uuid.Parse(authCode.UserID.String())
+	if err != nil {
+		return nil, err
+	}
+	user, err := s.userRepo.GetUserByID(context.Background(), userIDUUID)
+	if err != nil {
+		return nil, err
+	}
+	if user == nil {
+		return nil, errors.New("user not found")
+	}
+
 	// Генерируем access token
 	accessToken, err := utils.GenerateRandomString(32)
 	if err != nil {
@@ -146,6 +194,12 @@ func (s *Service) ExchangeCodeForToken(code, redirectURI, clientID, clientSecret
 		return nil, err
 	}
 	refreshTokenExp := time.Now().Add(7 * 24 * time.Hour)
+
+	// Генерируем id_token
+	idToken, err := s.jwtService.GenerateIDToken(user.ID.String(), clientID, user.Email, user.Username, user.Role)
+	if err != nil {
+		return nil, err
+	}
 
 	// Сохраняем токены
 	err = s.tokenRepo.SaveAccessToken(accessToken, clientID, authCode.UserID.String(), authCode.Scope, accessTokenExp)
@@ -161,6 +215,7 @@ func (s *Service) ExchangeCodeForToken(code, redirectURI, clientID, clientSecret
 	// Возвращаем токены
 	return map[string]interface{}{
 		"access_token":  accessToken,
+		"id_token":      idToken,
 		"token_type":    "Bearer",
 		"expires_in":    int64(time.Until(accessTokenExp).Seconds()),
 		"refresh_token": refreshToken,

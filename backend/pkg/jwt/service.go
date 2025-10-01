@@ -27,6 +27,22 @@ func (s *Service) GenerateToken(userID, email, role string) (string, error) {
 	return token.SignedString([]byte(s.secret))
 }
 
+func (s *Service) GenerateIDToken(userID, clientID, email, username, role string) (string, error) {
+	claims := jwt.MapClaims{
+		"sub":      userID,
+		"iss":      "jiko-auth",                          // Issuer
+		"aud":      clientID,                             // Audience
+		"exp":      time.Now().Add(time.Hour * 1).Unix(), // ID token expires in 1 hour
+		"iat":      time.Now().Unix(),
+		"email":    email,
+		"username": username,
+		"role":     role,
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	return token.SignedString([]byte(s.secret))
+}
+
 func (s *Service) ValidateToken(tokenString string) (jwt.MapClaims, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
