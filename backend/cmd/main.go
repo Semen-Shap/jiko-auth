@@ -41,7 +41,7 @@ func main() {
 
 	// Инициализация сервисов
 	jwtService := jwt.NewService(cfg.JWTSecret)
-	oauthService := oauth2.NewService(authCodeRepo, tokenRepo, clientRepo)
+	oauthService := oauth2.NewService(authCodeRepo, tokenRepo, clientRepo, userRepo, jwtService)
 	emailService := email.NewEmailService(cfg)
 
 	// Инициализация обработчиков
@@ -55,7 +55,7 @@ func main() {
 		geoLocationService,
 		notificationService,
 	)
-	oauthHandler := handlers.NewOAuthHandler(oauthService, clientRepo, userRepo, tokenRepo)
+	oauthHandler := handlers.NewOAuthHandler(oauthService, clientRepo, userRepo, tokenRepo, jwtService)
 	codesHandler := handlers.NewCodesHandler(clientRepo)
 	adminHandler := handlers.NewAdminHandler(userRepo, clientRepo)
 

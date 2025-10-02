@@ -71,6 +71,9 @@ func SetupRouter(
 		api.POST("/oauth/introspect", oauthHandler.Introspect)
 		api.GET("/oauth/userinfo", middleware.OAuthMiddleware(tokenRepo, userRepo), oauthHandler.UserInfo)
 
+		// OIDC Discovery
+		api.GET("/.well-known/openid-configuration", oauthHandler.OpenIDConfiguration)
+
 		// Admin routes
 		admin := api.Group("/admin")
 		admin.Use(middleware.AdminMiddleware(jwtService))

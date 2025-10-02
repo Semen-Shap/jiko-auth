@@ -47,6 +47,7 @@ type AuthorizationCode struct {
 	CreatedAt           time.Time `gorm:"autoCreateTime" json:"created_at"`
 	CodeChallenge       string    `gorm:"type:text" json:"codeChallenge"`
 	CodeChallengeMethod string    `gorm:"type:text" json:"codeChallengeMethod"`
+	Nonce               string    `gorm:"type:varchar(255)" json:"nonce"`
 }
 
 type AccessToken struct {

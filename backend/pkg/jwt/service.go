@@ -87,6 +87,42 @@ func (s *Service) ValidateToken(tokenString string) (*Claims, error) {
 	return nil, errors.New("invalid token")
 }
 
+type IDTokenClaims struct {
+	Subject       string `json:"sub"`
+	Issuer        string `json:"iss"`
+	Audience      string `json:"aud"`
+	ExpiresAt     int64  `json:"exp"`
+	IssuedAt      int64  `json:"iat"`
+	AuthTime      int64  `json:"auth_time,omitempty"`
+	Nonce         string `json:"nonce,omitempty"`
+	Name          string `json:"name,omitempty"`
+	Email         string `json:"email,omitempty"`
+	EmailVerified bool   `json:"email_verified,omitempty"`
+	jwt.RegisteredClaims
+}
+
+func (s *Service) GenerateIDToken(userID, clientID, email, username string, emailVerified bool, nonce string, authTime time.Time) (string, error) {
+	scheme := "http"             // TODO: get from config
+	host := "auth.with-jiko.com" // TODO: get from config
+	issuer := scheme + "://" + host + "/api/v1"
+
+	claims := IDTokenClaims{
+		Subject:       userID,
+		Issuer:        issuer,
+		Audience:      clientID,
+		ExpiresAt:     time.Now().Add(1 * time.Hour).Unix(),
+		IssuedAt:      time.Now().Unix(),
+		AuthTime:      authTime.Unix(),
+		Nonce:         nonce,
+		Name:          username,
+		Email:         email,
+		EmailVerified: emailVerified,
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	return token.SignedString([]byte(s.secret))
+}
+
 func generateSessionID() string {
 	// Implementation for cryptographically secure session ID
 	return "secure_session_id_" + time.Now().Format("20060102150405")

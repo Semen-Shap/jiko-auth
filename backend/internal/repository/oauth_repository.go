@@ -212,7 +212,7 @@ func (r *TokenRepository) DeleteExpiredTokens() error {
 }
 
 // internal/repository/oauth_repository.go
-func (r *AuthCodeRepository) SaveAuthorizationCodeWithPKCE(code, clientID, userID, redirectURI, scope string, expiresAt time.Time, codeChallenge, codeChallengeMethod string) error {
+func (r *AuthCodeRepository) SaveAuthorizationCodeWithPKCE(code, clientID, userID, redirectURI, scope string, expiresAt time.Time, codeChallenge, codeChallengeMethod, nonce string) error {
 	clientUUID, err := uuid.Parse(clientID)
 	if err != nil {
 		return err
@@ -233,6 +233,7 @@ func (r *AuthCodeRepository) SaveAuthorizationCodeWithPKCE(code, clientID, userI
 		Used:                false,
 		CodeChallenge:       codeChallenge,
 		CodeChallengeMethod: codeChallengeMethod,
+		Nonce:               nonce,
 		CreatedAt:           time.Now(),
 	}
 

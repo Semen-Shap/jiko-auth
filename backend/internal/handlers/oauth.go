@@ -6,6 +6,7 @@ import (
 	"jiko-auth/internal/models"
 	"jiko-auth/internal/repository"
 	"jiko-auth/internal/utils"
+	"jiko-auth/pkg/jwt"
 	"jiko-auth/pkg/oauth2"
 	"net/http"
 	"net/url"
@@ -20,14 +21,16 @@ type OAuthHandler struct {
 	clientRepo   *repository.OAuthClientRepository
 	userRepo     repository.UserRepository
 	tokenRepo    *repository.TokenRepository
+	jwtService   *jwt.Service
 }
 
-func NewOAuthHandler(oauthService *oauth2.Service, clientRepo *repository.OAuthClientRepository, userRepo repository.UserRepository, tokenRepo *repository.TokenRepository) *OAuthHandler {
+func NewOAuthHandler(oauthService *oauth2.Service, clientRepo *repository.OAuthClientRepository, userRepo repository.UserRepository, tokenRepo *repository.TokenRepository, jwtService *jwt.Service) *OAuthHandler {
 	return &OAuthHandler{
 		oauthService: oauthService,
 		clientRepo:   clientRepo,
 		userRepo:     userRepo,
 		tokenRepo:    tokenRepo,
+		jwtService:   jwtService,
 	}
 }
 
@@ -39,6 +42,7 @@ func (h *OAuthHandler) Authorize(c *gin.Context) {
 	state := c.Query("state")
 	codeChallenge := c.Query("code_challenge")
 	codeChallengeMethod := c.Query("code_challenge_method")
+	nonce := c.Query("nonce")
 
 	// Валидируем client_id
 	client, err := h.clientRepo.GetClient(clientID)
@@ -78,7 +82,8 @@ func (h *OAuthHandler) Authorize(c *gin.Context) {
 			"&scope=" + scope +
 			"&state=" + state +
 			"&code_challenge=" + url.QueryEscape(codeChallenge) +
-			"&code_challenge_method=" + url.QueryEscape(codeChallengeMethod)
+			"&code_challenge_method=" + url.QueryEscape(codeChallengeMethod) +
+			"&nonce=" + url.QueryEscape(nonce)
 		c.Redirect(http.StatusFound, frontendURL+queryParams)
 		return
 	}
@@ -92,7 +97,7 @@ func (h *OAuthHandler) Authorize(c *gin.Context) {
 
 	// Если response_type=code, генерируем authorization code
 	if responseType == "code" {
-		code, err := h.oauthService.GenerateAuthorizationCode(clientID, userID.(string), redirectURI, scope, codeChallenge, codeChallengeMethod)
+		code, err := h.oauthService.GenerateAuthorizationCode(clientID, userID.(string), redirectURI, scope, codeChallenge, codeChallengeMethod, nonce)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to generate authorization code"})
 			return
@@ -117,6 +122,7 @@ func (h *OAuthHandler) AuthorizeApproval(c *gin.Context) {
 		State               string `json:"state"`
 		CodeChallenge       string `json:"code_challenge"`
 		CodeChallengeMethod string `json:"code_challenge_method"`
+		Nonce               string `json:"nonce"`
 		Action              string `json:"action" binding:"required"` // "approve" или "deny"
 	}
 
@@ -148,7 +154,7 @@ func (h *OAuthHandler) AuthorizeApproval(c *gin.Context) {
 
 	if req.Action == "approve" && req.ResponseType == "code" {
 		// Пользователь разрешил доступ, генерируем код
-		code, err := h.oauthService.GenerateAuthorizationCode(req.ClientID, userID.(string), req.RedirectURI, req.Scope, req.CodeChallenge, req.CodeChallengeMethod)
+		code, err := h.oauthService.GenerateAuthorizationCode(req.ClientID, userID.(string), req.RedirectURI, req.Scope, req.CodeChallenge, req.CodeChallengeMethod, req.Nonce)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to generate authorization code"})
 			return
@@ -547,4 +553,29 @@ func (h *OAuthHandler) HasRefreshToken(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"has_refresh_token": has})
+}
+
+func (h *OAuthHandler) OpenIDConfiguration(c *gin.Context) {
+	scheme := "http"
+	if c.Request.TLS != nil {
+		scheme = "https"
+	}
+	baseURL := scheme + "://" + c.Request.Host + "/api/v1"
+
+	config := map[string]interface{}{
+		"issuer":                                baseURL,
+		"authorization_endpoint":                baseURL + "/oauth/authorize",
+		"token_endpoint":                        baseURL + "/oauth/token",
+		"userinfo_endpoint":                     baseURL + "/oauth/userinfo",
+		"jwks_uri":                              baseURL + "/oauth/jwks", // TODO: implement JWKS
+		"scopes_supported":                      []string{"openid", "profile", "email"},
+		"response_types_supported":              []string{"code"},
+		"grant_types_supported":                 []string{"authorization_code", "refresh_token"},
+		"subject_types_supported":               []string{"public"},
+		"id_token_signing_alg_values_supported": []string{"HS256"},
+		"token_endpoint_auth_methods_supported": []string{"client_secret_post"},
+		"claims_supported":                      []string{"sub", "iss", "aud", "exp", "iat", "auth_time", "nonce", "name", "email", "email_verified"},
+	}
+
+	c.JSON(http.StatusOK, config)
 }

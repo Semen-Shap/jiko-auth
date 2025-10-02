@@ -15,6 +15,7 @@ import (
 type UserRepository interface {
 	CreateUser(ctx context.Context, user *models.User) error
 	GetUserByID(ctx context.Context, id uuid.UUID) (*models.User, error) // Изменено на uuid.UUID
+	GetUserByIDString(id string) (*models.User, error)
 	GetUserByEmail(ctx context.Context, email string) (*models.User, error)
 	GetUserByUsername(ctx context.Context, username string) (*models.User, error)
 	UpdateUser(ctx context.Context, user *models.User) error
@@ -55,6 +56,14 @@ func (r *userRepository) GetUserByID(ctx context.Context, id uuid.UUID) (*models
 		return nil, fmt.Errorf("failed to get user by ID: %w", err)
 	}
 	return &user, nil
+}
+
+func (r *userRepository) GetUserByIDString(id string) (*models.User, error) {
+	uuidID, err := uuid.Parse(id)
+	if err != nil {
+		return nil, fmt.Errorf("invalid UUID: %w", err)
+	}
+	return r.GetUserByID(context.Background(), uuidID)
 }
 
 func (r *userRepository) DeleteUser(ctx context.Context, id uuid.UUID) error {

@@ -2,6 +2,7 @@
 package oauth2
 
 import (
+	"context"
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
@@ -9,14 +10,18 @@ import (
 	"fmt"
 	"jiko-auth/internal/models"
 	"jiko-auth/internal/utils"
+	"jiko-auth/pkg/jwt"
+	"strings"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type AuthCodeRepository interface {
 	SaveAuthorizationCode(code, clientID, userID, redirectURI, scope string, expiresAt time.Time) error
 	GetAuthorizationCode(code string) (*models.AuthorizationCode, error)
 	MarkAuthorizationCodeUsed(code string) error
-	SaveAuthorizationCodeWithPKCE(code, clientID, userID, redirectURI, scope string, expiresAt time.Time, codeChallenge, codeChallengeMethod string) error
+	SaveAuthorizationCodeWithPKCE(code, clientID, userID, redirectURI, scope string, expiresAt time.Time, codeChallenge, codeChallengeMethod, nonce string) error
 	GetAuthorizationCodeWithPKCE(code string) (*models.AuthorizationCode, error)
 }
 
@@ -34,21 +39,29 @@ type ClientRepository interface {
 	ValidateClientSecret(clientID, clientSecret string) (bool, error)
 }
 
+type UserRepository interface {
+	GetUserByID(ctx context.Context, id uuid.UUID) (*models.User, error)
+}
+
 type Service struct {
 	authCodeRepo AuthCodeRepository
 	tokenRepo    TokenRepository
 	clientRepo   ClientRepository
+	userRepo     UserRepository
+	jwtService   *jwt.Service
 }
 
-func NewService(authCodeRepo AuthCodeRepository, tokenRepo TokenRepository, clientRepo ClientRepository) *Service {
+func NewService(authCodeRepo AuthCodeRepository, tokenRepo TokenRepository, clientRepo ClientRepository, userRepo UserRepository, jwtService *jwt.Service) *Service {
 	return &Service{
 		authCodeRepo: authCodeRepo,
 		tokenRepo:    tokenRepo,
 		clientRepo:   clientRepo,
+		userRepo:     userRepo,
+		jwtService:   jwtService,
 	}
 }
 
-func (s *Service) GenerateAuthorizationCode(clientID, userID, redirectURI, scope, codeChallenge, codeChallengeMethod string) (string, error) {
+func (s *Service) GenerateAuthorizationCode(clientID, userID, redirectURI, scope, codeChallenge, codeChallengeMethod, nonce string) (string, error) {
 	code, err := generateCryptoSecureToken(32)
 	if err != nil {
 		return "", fmt.Errorf("failed to generate authorization code: %w", err)
@@ -58,7 +71,7 @@ func (s *Service) GenerateAuthorizationCode(clientID, userID, redirectURI, scope
 
 	if codeChallenge != "" && codeChallengeMethod != "" {
 		// PKCE flow
-		err = s.authCodeRepo.SaveAuthorizationCodeWithPKCE(code, clientID, userID, redirectURI, scope, expiresAt, codeChallenge, codeChallengeMethod)
+		err = s.authCodeRepo.SaveAuthorizationCodeWithPKCE(code, clientID, userID, redirectURI, scope, expiresAt, codeChallenge, codeChallengeMethod, nonce)
 	} else {
 		// Classic flow
 		err = s.authCodeRepo.SaveAuthorizationCode(code, clientID, userID, redirectURI, scope, expiresAt)
@@ -112,13 +125,16 @@ func (s *Service) RefreshToken(refreshToken, clientID, clientSecret string) (map
 }
 
 func (s *Service) ExchangeCodeForToken(code, redirectURI, clientID, clientSecret string, codeVerifier string) (map[string]interface{}, error) {
-	// Проверяем client_id и client_secret
-	isValid, err := s.clientRepo.ValidateClientSecret(clientID, clientSecret)
-	if err != nil || !isValid {
-		return nil, err
+	if codeVerifier == "" {
+		// Проверяем client_id и client_secret для classic flow
+		isValid, err := s.clientRepo.ValidateClientSecret(clientID, clientSecret)
+		if err != nil || !isValid {
+			return nil, err
+		}
 	}
 
 	var authCode *models.AuthorizationCode
+	var err error
 
 	if codeVerifier != "" {
 		// PKCE flow: get code with PKCE data
@@ -137,6 +153,11 @@ func (s *Service) ExchangeCodeForToken(code, redirectURI, clientID, clientSecret
 		if err != nil {
 			return nil, err
 		}
+	}
+
+	// Проверяем client_id
+	if authCode.ClientID.String() != clientID {
+		return nil, errors.New("client_id mismatch")
 	}
 
 	// Проверяем, не использован ли уже код
@@ -185,14 +206,34 @@ func (s *Service) ExchangeCodeForToken(code, redirectURI, clientID, clientSecret
 		return nil, err
 	}
 
-	// Возвращаем токены
-	return map[string]interface{}{
+	// Подготавливаем ответ
+	response := map[string]interface{}{
 		"access_token":  accessToken,
 		"token_type":    "Bearer",
 		"expires_in":    int64(time.Until(accessTokenExp).Seconds()),
 		"refresh_token": refreshToken,
 		"scope":         authCode.Scope,
-	}, nil
+	}
+
+	// Если scope содержит "openid", генерируем id_token
+	if strings.Contains(authCode.Scope, "openid") {
+		user, err := s.userRepo.GetUserByID(context.Background(), authCode.UserID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get user: %w", err)
+		}
+		if user == nil {
+			return nil, errors.New("user not found")
+		}
+
+		idToken, err := s.jwtService.GenerateIDToken(authCode.UserID.String(), clientID, user.Email, user.Username, user.EmailVerified, authCode.Nonce, authCode.CreatedAt)
+		if err != nil {
+			return nil, fmt.Errorf("failed to generate id_token: %w", err)
+		}
+		response["id_token"] = idToken
+	}
+
+	// Возвращаем токены
+	return response, nil
 }
 
 func (s *Service) CleanupExpiredTokens() error {
