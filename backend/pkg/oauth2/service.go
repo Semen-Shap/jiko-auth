@@ -48,7 +48,7 @@ func NewService(authCodeRepo AuthCodeRepository, tokenRepo TokenRepository, clie
 	}
 }
 
-func (s *Service) GenerateAuthorizationCode(clientID, userID, redirectURI, scope string) (string, error) {
+func (s *Service) GenerateAuthorizationCode(clientID, userID, redirectURI, scope, codeChallenge, codeChallengeMethod string) (string, error) {
 	code, err := generateCryptoSecureToken(32)
 	if err != nil {
 		return "", fmt.Errorf("failed to generate authorization code: %w", err)
@@ -56,7 +56,14 @@ func (s *Service) GenerateAuthorizationCode(clientID, userID, redirectURI, scope
 
 	expiresAt := time.Now().Add(10 * time.Minute)
 
-	err = s.authCodeRepo.SaveAuthorizationCode(code, clientID, userID, redirectURI, scope, expiresAt)
+	if codeChallenge != "" && codeChallengeMethod != "" {
+		// PKCE flow
+		err = s.authCodeRepo.SaveAuthorizationCodeWithPKCE(code, clientID, userID, redirectURI, scope, expiresAt, codeChallenge, codeChallengeMethod)
+	} else {
+		// Classic flow
+		err = s.authCodeRepo.SaveAuthorizationCode(code, clientID, userID, redirectURI, scope, expiresAt)
+	}
+
 	if err != nil {
 		return "", err
 	}
@@ -104,17 +111,32 @@ func (s *Service) RefreshToken(refreshToken, clientID, clientSecret string) (map
 	}, nil
 }
 
-func (s *Service) ExchangeCodeForToken(code, redirectURI, clientID, clientSecret string) (map[string]interface{}, error) {
+func (s *Service) ExchangeCodeForToken(code, redirectURI, clientID, clientSecret string, codeVerifier string) (map[string]interface{}, error) {
 	// Проверяем client_id и client_secret
 	isValid, err := s.clientRepo.ValidateClientSecret(clientID, clientSecret)
 	if err != nil || !isValid {
 		return nil, err
 	}
 
-	// Получаем код авторизации
-	authCode, err := s.authCodeRepo.GetAuthorizationCode(code)
-	if err != nil {
-		return nil, err
+	var authCode *models.AuthorizationCode
+
+	if codeVerifier != "" {
+		// PKCE flow: get code with PKCE data
+		authCode, err = s.authCodeRepo.GetAuthorizationCodeWithPKCE(code)
+		if err != nil {
+			return nil, err
+		}
+
+		// Validate PKCE
+		if err := validatePKCE(authCode.CodeChallenge, authCode.CodeChallengeMethod, codeVerifier); err != nil {
+			return nil, err
+		}
+	} else {
+		// Classic OAuth flow: get regular authorization code
+		authCode, err = s.authCodeRepo.GetAuthorizationCode(code)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// Проверяем, не использован ли уже код
@@ -203,46 +225,6 @@ func (s *Service) IntrospectToken(token string) (map[string]interface{}, error) 
 		"token_type": "Bearer",
 		"exp":        accessToken.ExpiresAt.Unix(),
 	}, nil
-}
-
-
-func (s *Service) GenerateAuthorizationCodeWithPKCE(clientID, userID, redirectURI, scope, codeChallenge, codeChallengeMethod string) (string, error) {
-	code, err := utils.GenerateRandomString(32)
-	if err != nil {
-		return "", err
-	}
-
-	expiresAt := time.Now().Add(10 * time.Minute)
-
-	// Store code challenge for PKCE validation
-	err = s.authCodeRepo.SaveAuthorizationCodeWithPKCE(code, clientID, userID, redirectURI, scope, expiresAt, codeChallenge, codeChallengeMethod)
-	if err != nil {
-		return "", err
-	}
-
-	return code, nil
-}
-
-func (s *Service) ExchangeCodeForTokenWithPKCE(code, redirectURI, clientID, clientSecret, codeVerifier string) (map[string]interface{}, error) {
-	// Validate client credentials
-	isValid, err := s.clientRepo.ValidateClientSecret(clientID, clientSecret)
-	if err != nil || !isValid {
-		return nil, errors.New("invalid client credentials")
-	}
-
-	// Get authorization code with PKCE data
-	authCode, err := s.authCodeRepo.GetAuthorizationCodeWithPKCE(code)
-	if err != nil {
-		return nil, err
-	}
-
-	// Validate PKCE
-	if err := validatePKCE(authCode.CodeChallenge, authCode.CodeChallengeMethod, codeVerifier); err != nil {
-		return nil, err
-	}
-
-	// Rest of the token exchange logic remains the same...
-	return s.ExchangeCodeForToken(code, redirectURI, clientID, clientSecret)
 }
 
 func validatePKCE(codeChallenge, codeChallengeMethod, codeVerifier string) error {

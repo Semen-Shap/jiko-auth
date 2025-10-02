@@ -1,169 +1,126 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
+import { isClientApproved, updateClientApproval } from '@/lib/cookies';
+import { OAuthService } from '@/services/oauthService';
+import { ClientInfo, OAuthParams, OAuthState, OAuthActions } from '@/types/oauth';
 
-interface ClientInfo {
-	client_id: string;
-	name: string;
-	created_at: string;
-}
-
-interface OAuthParams {
-	clientId: string | null;
-	redirectUri: string | null;
-	responseType: string | null;
-	scope: string | null;
-	state: string | null;
-}
-
-export function useOAuth() {
+export function useOAuth(): OAuthState & OAuthActions & {
+	oauthParams: OAuthParams;
+	isValidParams: boolean;
+} {
 	const searchParams = useSearchParams();
-	const { data: session } = useSession();
+	const { data: session, status } = useSession();
 	const token = session?.accessToken;
 
+	// Utility functions
+	const extractOAuthParams = useCallback((params: URLSearchParams): OAuthParams => {
+		return Object.fromEntries(params.entries());
+	}, []);
+
+	const validateOAuthParams = useCallback((params: OAuthParams): boolean => {
+		return !!(params.client_id && params.redirect_uri && params.response_type);
+	}, []);
+
+	// Memoized values
+	const oauthParams = useMemo(() => extractOAuthParams(searchParams), [searchParams, extractOAuthParams]);
+	const isValidParams = useMemo(() => validateOAuthParams(oauthParams), [oauthParams, validateOAuthParams]);
+
+	// Check if client is already approved (synchronously)
+	const isAlreadyApproved = useMemo(() => {
+		if (!oauthParams.client_id || !session?.user?.id) return false;
+		return isClientApproved(session.user.id, oauthParams.client_id);
+	}, [oauthParams.client_id, session?.user?.id]);
+
+	// State
 	const [clientInfo, setClientInfo] = useState<ClientInfo | null>(null);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
-	const [submitting, setSubmitting] = useState(false);
+	const [isAutoApproving, setIsAutoApproving] = useState(false);
 
-	// OAuth parameters - memoize to avoid recalculations
-	const oauthParams: OAuthParams = useMemo(() => ({
-		clientId: searchParams.get('client_id'),
-		redirectUri: searchParams.get('redirect_uri'),
-		responseType: searchParams.get('response_type'),
-		scope: searchParams.get('scope'),
-		state: searchParams.get('state'),
-	}), [searchParams]);
+	// Utility functions
+	const updateClientApprovalCookie = useCallback((clientId: string) => {
+		if (!session?.user?.id) return;
+		updateClientApproval(session.user.id, clientId);
+	}, [session?.user?.id]);
 
-	// Validate parameters
-	const isValidParams = useMemo(() =>
-		oauthParams.clientId && oauthParams.redirectUri && oauthParams.responseType,
-		[oauthParams]
-	);
-
-	// Fetch client info
+	// API functions
 	const fetchClientInfo = useCallback(async () => {
-		if (!oauthParams.clientId) return;
+		if (!oauthParams.client_id) return;
+		const data = await OAuthService.fetchClientInfo(oauthParams.client_id);
+		setClientInfo(data);
+	}, [oauthParams.client_id]);
 
-		try {
-			const response = await fetch(`/api/v1/oauth/client?client_id=${oauthParams.clientId}`);
-			if (!response.ok) throw new Error('Failed to retrieve application information');
-			const data = await response.json();
-			setClientInfo(data);
-		} catch (err) {
-			throw err;
-		}
-	}, [oauthParams.clientId]);
+	const sendAuthorizeRequest = useCallback(async (action: 'approve' | 'deny', updateCookies: boolean = false) => {
+		if (!token) throw new Error('No access token available');
 
-	// Check if user has refresh token and auto-approve
-	const checkAndAutoApprove = useCallback(async () => {
-		if (!oauthParams.clientId || !token) return false;
+		const data = await OAuthService.sendAuthorizeRequest(oauthParams, action, token);
 
-		try {
-			const checkResponse = await fetch(`/api/v1/oauth/has_refresh_token?client_id=${oauthParams.clientId}`, {
-				headers: { 'Authorization': `Bearer ${token}` },
-			});
-
-			if (checkResponse.ok) {
-				const checkData = await checkResponse.json();
-				if (checkData.has_refresh_token) {
-					const approveResponse = await fetch('/api/v1/oauth/authorize', {
-						method: 'POST',
-						headers: {
-							'Content-Type': 'application/json',
-							'Authorization': `Bearer ${token}`,
-						},
-						body: JSON.stringify({
-							client_id: oauthParams.clientId,
-							redirect_uri: oauthParams.redirectUri,
-							response_type: oauthParams.responseType,
-							scope: oauthParams.scope || '',
-							state: oauthParams.state || '',
-							action: 'approve',
-						}),
-					});
-
-					if (approveResponse.ok) {
-						const approveData = await approveResponse.json();
-						if (approveData.redirect_url) {
-							window.location.href = approveData.redirect_url;
-							return true; // Indicate auto-approval happened
-						}
-					}
-				}
+		if (data.redirect_url) {
+			if (updateCookies && action === 'approve') {
+				updateClientApprovalCookie(oauthParams.client_id!);
 			}
-		} catch {
-			// Ignore error, continue to show UI
+			window.location.href = data.redirect_url;
+			return true;
 		}
 		return false;
-	}, [oauthParams, token]);
+	}, [oauthParams, token, updateClientApprovalCookie]);
 
-	// Initialize data fetching
+	// Auto-approval logic
+	const attemptAutoApprove = useCallback(async () => {
+		if (!oauthParams.client_id || !token || !isAlreadyApproved) {
+			return false;
+		}
+
+		setIsAutoApproving(true);
+		console.log('Auto-approving from cookies');
+		try {
+			const success = await sendAuthorizeRequest('approve');
+			if (success) return true;
+		} catch {
+			// If auto-approval fails, fall back to manual approval
+		}
+		setIsAutoApproving(false);
+		return false;
+	}, [oauthParams.client_id, token, isAlreadyApproved, sendAuthorizeRequest]);
+
+	// Initialization effect
 	useEffect(() => {
-		if (!isValidParams) {
-			setError('Invalid OAuth request parameters');
-			setLoading(false);
+		if (!isValidParams || status === 'loading') {
+			if (!isValidParams) {
+				setError('Invalid OAuth request parameters');
+				setLoading(false);
+			}
 			return;
 		}
 
 		const initialize = async () => {
-			try {
+			const autoApproved = await attemptAutoApprove();
+			if (!autoApproved) {
 				await fetchClientInfo();
-				const autoApproved = await checkAndAutoApprove();
-				if (!autoApproved) {
-					setLoading(false);
-				}
-			} catch (err) {
-				setError(err instanceof Error ? err.message : 'An error occurred');
 				setLoading(false);
 			}
 		};
 
-		initialize();
-	}, [isValidParams, fetchClientInfo, checkAndAutoApprove]);
-
-	// Handle authorization action
-	const handleAuthorize = useCallback(async (action: 'approve' | 'deny') => {
-		setSubmitting(true);
-		setError(null);
-
-		try {
-			const response = await fetch('/api/v1/oauth/authorize', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					'Authorization': `Bearer ${token}`,
-				},
-				body: JSON.stringify({
-					client_id: oauthParams.clientId,
-					redirect_uri: oauthParams.redirectUri,
-					response_type: oauthParams.responseType,
-					scope: oauthParams.scope || '',
-					state: oauthParams.state || '',
-					action,
-				}),
-			});
-
-			if (!response.ok) throw new Error('Error processing authorization request');
-
-			const data = await response.json();
-			if (data.redirect_url) {
-				window.location.href = data.redirect_url;
-			}
-		} catch (err) {
+		initialize().catch((err) => {
 			setError(err instanceof Error ? err.message : 'An error occurred');
-		} finally {
-			setSubmitting(false);
-		}
-	}, [oauthParams, token]);
+			setLoading(false);
+		});
+	}, [isValidParams, status, attemptAutoApprove, fetchClientInfo]);
+
+	// Authorization handler
+	const handleAuthorize = useCallback(async (action: 'approve' | 'deny') => {
+		setError(null);
+		await sendAuthorizeRequest(action, true);
+	}, [sendAuthorizeRequest]);
 
 	return {
 		clientInfo,
 		loading,
 		error,
-		submitting,
 		oauthParams,
 		isValidParams,
 		handleAuthorize,
+		isAutoApproving,
 	};
 }

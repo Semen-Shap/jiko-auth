@@ -37,6 +37,8 @@ func (h *OAuthHandler) Authorize(c *gin.Context) {
 	responseType := c.Query("response_type")
 	scope := c.Query("scope")
 	state := c.Query("state")
+	codeChallenge := c.Query("code_challenge")
+	codeChallengeMethod := c.Query("code_challenge_method")
 
 	// Валидируем client_id
 	client, err := h.clientRepo.GetClient(clientID)
@@ -74,7 +76,9 @@ func (h *OAuthHandler) Authorize(c *gin.Context) {
 			"&redirect_uri=" + url.QueryEscape(redirectURI) +
 			"&response_type=" + responseType +
 			"&scope=" + scope +
-			"&state=" + state
+			"&state=" + state +
+			"&code_challenge=" + url.QueryEscape(codeChallenge) +
+			"&code_challenge_method=" + url.QueryEscape(codeChallengeMethod)
 		c.Redirect(http.StatusFound, frontendURL+queryParams)
 		return
 	}
@@ -88,7 +92,7 @@ func (h *OAuthHandler) Authorize(c *gin.Context) {
 
 	// Если response_type=code, генерируем authorization code
 	if responseType == "code" {
-		code, err := h.oauthService.GenerateAuthorizationCode(clientID, userID.(string), redirectURI, scope)
+		code, err := h.oauthService.GenerateAuthorizationCode(clientID, userID.(string), redirectURI, scope, codeChallenge, codeChallengeMethod)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to generate authorization code"})
 			return
@@ -106,12 +110,14 @@ func (h *OAuthHandler) Authorize(c *gin.Context) {
 // AuthorizeApproval обрабатывает подтверждение авторизации от пользователя
 func (h *OAuthHandler) AuthorizeApproval(c *gin.Context) {
 	var req struct {
-		ClientID     string `json:"client_id" binding:"required"`
-		RedirectURI  string `json:"redirect_uri" binding:"required"`
-		ResponseType string `json:"response_type" binding:"required"`
-		Scope        string `json:"scope"`
-		State        string `json:"state"`
-		Action       string `json:"action" binding:"required"` // "approve" или "deny"
+		ClientID            string `json:"client_id" binding:"required"`
+		RedirectURI         string `json:"redirect_uri" binding:"required"`
+		ResponseType        string `json:"response_type" binding:"required"`
+		Scope               string `json:"scope"`
+		State               string `json:"state"`
+		CodeChallenge       string `json:"code_challenge"`
+		CodeChallengeMethod string `json:"code_challenge_method"`
+		Action              string `json:"action" binding:"required"` // "approve" или "deny"
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -142,7 +148,7 @@ func (h *OAuthHandler) AuthorizeApproval(c *gin.Context) {
 
 	if req.Action == "approve" && req.ResponseType == "code" {
 		// Пользователь разрешил доступ, генерируем код
-		code, err := h.oauthService.GenerateAuthorizationCode(req.ClientID, userID.(string), req.RedirectURI, req.Scope)
+		code, err := h.oauthService.GenerateAuthorizationCode(req.ClientID, userID.(string), req.RedirectURI, req.Scope, req.CodeChallenge, req.CodeChallengeMethod)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to generate authorization code"})
 			return
@@ -183,14 +189,20 @@ func (h *OAuthHandler) GetClientInfo(c *gin.Context) {
 func (h *OAuthHandler) Token(c *gin.Context) {
 	grantType := c.PostForm("grant_type")
 
+	clientID := c.PostForm("client_id")
+	clientSecret := c.PostForm("client_secret")
+
 	switch grantType {
 	case "authorization_code":
 		code := c.PostForm("code")
 		redirectURI := c.PostForm("redirect_uri")
-		clientID := c.PostForm("client_id")
-		clientSecret := c.PostForm("client_secret")
+		codeVerifier := c.PostForm("code_verifier")
 
-		tokens, err := h.oauthService.ExchangeCodeForToken(code, redirectURI, clientID, clientSecret)
+		var tokens map[string]interface{}
+		var err error
+
+		tokens, err = h.oauthService.ExchangeCodeForToken(code, redirectURI, clientID, clientSecret, codeVerifier)
+
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
@@ -200,8 +212,6 @@ func (h *OAuthHandler) Token(c *gin.Context) {
 
 	case "refresh_token":
 		refreshToken := c.PostForm("refresh_token")
-		clientID := c.PostForm("client_id")
-		clientSecret := c.PostForm("client_secret")
 
 		tokens, err := h.oauthService.RefreshToken(refreshToken, clientID, clientSecret)
 		if err != nil {

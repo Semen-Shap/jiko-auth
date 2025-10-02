@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense } from 'react';
+import { Suspense, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
@@ -14,9 +14,13 @@ function AuthorizeContent() {
 	const { data: session } = useSession();
 	const user = session?.user;
 
-	const { clientInfo, loading, error, submitting, oauthParams, handleAuthorize } = useOAuth();
+	const { clientInfo, loading, error, oauthParams, handleAuthorize, isAutoApproving } = useOAuth();
+	const [isPending, startTransition] = useTransition();
 
-	if (loading) return null;
+	const handleAuthorizeWithTransition = (action: 'approve' | 'deny') =>
+		startTransition(() => handleAuthorize(action));
+
+	if (loading || isAutoApproving) return <div></div>;
 
 	if (error) {
 		return (
@@ -92,19 +96,19 @@ function AuthorizeContent() {
 				<CardFooter className="flex space-x-2">
 					<Button
 						variant="outline"
-						onClick={() => handleAuthorize('deny')}
-						disabled={submitting}
+						onClick={() => handleAuthorizeWithTransition('deny')}
+						disabled={isPending}
 						className="flex-1"
 					>
-						{submitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+						{isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
 						Deny
 					</Button>
 					<Button
-						onClick={() => handleAuthorize('approve')}
-						disabled={submitting}
+						onClick={() => handleAuthorizeWithTransition('approve')}
+						disabled={isPending}
 						className="flex-1"
 					>
-						{submitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+						{isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
 						Allow Access
 					</Button>
 				</CardFooter>
@@ -115,7 +119,7 @@ function AuthorizeContent() {
 
 export default function AuthorizePage() {
 	return (
-		<Suspense fallback={null}>
+		<Suspense fallback={<div></div>}>
 			<AuthorizeContent />
 		</Suspense>
 	);
