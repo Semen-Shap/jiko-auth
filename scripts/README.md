@@ -27,6 +27,11 @@ npm run db:migrate
 npm run db:studio
 ```
 
+## Deploy commands
+```bash
+docker-compose down & git pull origin main & docker-compose up --build -d
+```
+
 ## Run dev
 ```bash
 # Run Docker Postres

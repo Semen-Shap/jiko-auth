@@ -4,7 +4,7 @@ import { Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { CheckCircle, XCircle } from 'lucide-react';
 import { useVerifyEmail } from '@/hooks/use-verify-email';
 
 function VerifyEmailContent() {
